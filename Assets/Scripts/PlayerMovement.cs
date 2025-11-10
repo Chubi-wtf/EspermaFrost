@@ -7,9 +7,17 @@ public class PlayerMovement : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
+    [Header("VARIABLES DE STAMINA")]
+    // VARIABLES AÑADIDAS PARA EL SISTEMA DE ESTAMINA
+    public float maxStamina = 100f;
+    public float currentStamina;
+    public float staminaDrainRate = 15f;    // Estamina que se gasta por segundo al correr
+    public float staminaRegenRate = 10f;   // Estamina que se recarga por segundo al no correr
+    public float regenDelay = 1.5f;        // Tiempo de espera antes de que la estamina empiece a regenerarse
+
     [Header("CONFIGURACIÓN DE KNOCKBACK")]
     public float knockbackForce = 15f;
-    public float knockbackDuration = 0.15f; // <<-- NUEVA VARIABLE: Tiempo que dura el empuje
+    public float knockbackDuration = 0.15f;
 
     [Header("VARIABLES DE MOVIMIENTO")]
     public float mouseSensitivity;
@@ -17,8 +25,8 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 10f;
 
     [Header("VARIABLES EFECTO DE REDUCCIÓN DE VELOCIDAD")]
-    public float slowDuration = 2f;         // Duración en segundos del efecto
-    public float slowMultiplier = 0.5f;     // Multiplicador de velocidad (0.5 = 50% de velocidad)
+    public float slowDuration = 2f;      // Duración en segundos del efecto
+    public float slowMultiplier = 0.5f;    // Multiplicador de velocidad (0.5 = 50% de velocidad)
     private float originalMovementSpeed;    // Para guardar la velocidad base original
     private float originalRunSpeed;         // Para guardar la velocidad de correr original
     public bool isSlowed = false;          // Evita aplicar el slow varias veces
@@ -32,6 +40,9 @@ public class PlayerMovement : MonoBehaviour
 
     #region PRIVATES BOOLS
     private bool isPlayerCrouching = false;
+    private bool isRunning = false;         // Nuevo: Indica si el jugador está actualmente corriendo (Shift presionado y moviéndose)
+    private bool isStaminaEmpty = false;    // Nuevo: Indica si la estamina ha llegado a cero
+    private float timeSinceLastRun = 0f;    // Nuevo: Contador para el retraso de regeneración
 
     private Transform cam;
     private float horizontalRotation, verticalRotation;
@@ -55,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
     {
         cc = GetComponent<CapsuleCollider>();
         currentHealth = maxHealth;
-
+        currentStamina = maxStamina; // <-- Inicialización de Estamina
 
         originalMovementSpeed = movementSpeed;
         originalRunSpeed = runSpeed;
@@ -72,6 +83,9 @@ public class PlayerMovement : MonoBehaviour
     {
         Movement();
 
+        // LÓGICA DE STAMINA AÑADIDA
+        HandleStamina();
+
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             Crouch();
@@ -79,6 +93,48 @@ public class PlayerMovement : MonoBehaviour
 
         UpdateNoiseRadius(currentSpeed);
     }
+
+    // NUEVO MÉTODO PARA MANEJAR EL CONSUMO Y REGENERACIÓN DE STAMINA
+    private void HandleStamina()
+    {
+        if (isRunning)
+        {
+            // CONSUMO: Si está corriendo, drena estamina
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+            currentStamina = Mathf.Max(currentStamina, 0f); // Asegura que no baje de 0
+
+            timeSinceLastRun = 0f; // Reinicia el contador de regeneración
+
+            if (currentStamina <= 0f)
+            {
+                isStaminaEmpty = true;
+                isRunning = false; // Detiene la carrera forzosamente
+                Debug.Log("¡Estamina agotada!");
+            }
+        }
+        else if (currentStamina < maxStamina)
+        {
+            // REGENERACIÓN
+            timeSinceLastRun += Time.deltaTime;
+
+            if (timeSinceLastRun >= regenDelay)
+            {
+                // Si ha pasado el retraso, regenera estamina
+                currentStamina += staminaRegenRate * Time.deltaTime;
+                currentStamina = Mathf.Min(currentStamina, maxStamina); // Asegura que no exceda el máximo
+
+                // Si la estamina ya no está vacía, permite correr de nuevo
+                if (currentStamina > 0f)
+                {
+                    isStaminaEmpty = false;
+                }
+            }
+        }
+
+        // Debug para ver el estado de la estamina
+        // Debug.Log($"Estamina: {currentStamina:F2} / {maxStamina} | Corriendo: {isRunning} | Vacía: {isStaminaEmpty}");
+    }
+
 
     #region RADIO DE ESCUCHA
 
@@ -200,11 +256,27 @@ public class PlayerMovement : MonoBehaviour
     #region MOVIMIENTO
     private void Movement()
     {
+        // Movimiento base (caminar)
         currentSpeed = movementSpeed;
+        isRunning = false; // Reset de la bandera de correr
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        // Comprobación para correr
+        // AÑADIDO: Verifica si se presiona Shift Y si el jugador NO está en slow Y si la estamina NO está vacía
+        if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
         {
-            currentSpeed = runSpeed;
+            // Verificamos que el jugador se esté moviendo realmente para no gastar estamina quieto
+            if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+            {
+                currentSpeed = runSpeed;
+                isRunning = true; // El jugador está corriendo
+            }
+        }
+
+        // Si el jugador intenta correr pero ya tiene la estamina vacía, forzamos a caminar.
+        if (isStaminaEmpty)
+        {
+            currentSpeed = movementSpeed;
+            isRunning = false;
         }
 
         keyboardX = Input.GetAxis("Horizontal");
@@ -253,14 +325,25 @@ public class PlayerMovement : MonoBehaviour
     }
     #endregion
 
+    #region HEALTH & STAMINA
     public void Heal(float amount)
     {
-        // Solo curar si la vida actual no está al máximo
         if (currentHealth < maxHealth)
         {
             currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
             Debug.Log($"[Botiquín] Curado {amount} de vida. Salud actual: {currentHealth}");
         }
-        // Devolvemos un booleano para indicar si la curación fue aplicada (útil para consumir el ítem o no)
     }
+
+    // Método para agregar estamina (ej: con un consumible, opcional)
+    public void AddStamina(float amount)
+    {
+        if (currentStamina < maxStamina)
+        {
+            currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
+            isStaminaEmpty = false; // Asegura que pueda correr si agrega estamina
+            Debug.Log($"[Consumible] Recargado {amount} de estamina. Estamina actual: {currentStamina}");
+        }
+    }
+    #endregion
 }
