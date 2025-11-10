@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fe79813571fb6db4b9516e220da093fd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244853
+  packageName: Creep Horror Creature
+  packageVersion: 1.0
+  assetPath: Assets/Creep Horror Creature/DemoSceneAssets/DemoAnimCont.controller
+  uploadId: 564778
