@@ -15,13 +15,14 @@ public class ItemTemplate : ScriptableObject
     public ITEM_TYPE itemType;
 
     [Header("Datos de Uso General")]
-    public float useDuration = 0.5f; // Tiempo que tarda el jugador en usar el ítem
-
+    public float useDuration;
 
     [Header("Datos de Botiquín")]
     public float healAmount;
 
-
     [Header("Datos de Adrenalina")]
-    public float adrenalineDuration = 5f; // DURACIÓN del efecto de estamina infinita
+    public float adrenalineDuration;
+
+    [Header("Datos de KeyCard")]
+    public string keyCardID;
 }

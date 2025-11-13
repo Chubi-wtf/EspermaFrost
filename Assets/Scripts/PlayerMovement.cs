@@ -8,12 +8,12 @@ public class PlayerMovement : MonoBehaviour
     public float currentHealth;
 
     [Header("VARIABLES DE STAMINA")]
-    // VARIABLES AÑADIDAS PARA EL SISTEMA DE ESTAMINA
     public float maxStamina = 100f;
     public float currentStamina;
-    public float staminaDrainRate = 15f;    // Estamina que se gasta por segundo al correr
-    public float staminaRegenRate = 10f;   // Estamina que se recarga por segundo al no correr
-    public float regenDelay = 1.5f;        // Tiempo de espera antes de que la estamina empiece a regenerarse
+    public float staminaDrainRate = 15f;
+    public float staminaRegenRate = 10f;
+    public float regenDelay = 1.5f;
+    public float runCooldown = 2f;
 
     [Header("CONFIGURACIÓN DE KNOCKBACK")]
     public float knockbackForce = 15f;
@@ -25,11 +25,11 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 10f;
 
     [Header("VARIABLES EFECTO DE REDUCCIÓN DE VELOCIDAD")]
-    public float slowDuration = 2f;      // Duración en segundos del efecto
-    public float slowMultiplier = 0.5f;    // Multiplicador de velocidad (0.5 = 50% de velocidad)
-    private float originalMovementSpeed;    // Para guardar la velocidad base original
-    private float originalRunSpeed;         // Para guardar la velocidad de correr original
-    public bool isSlowed = false;          // Evita aplicar el slow varias veces
+    public float slowDuration = 2f;
+    public float slowMultiplier = 0.5f;
+    private float originalMovementSpeed;
+    private float originalRunSpeed;
+    public bool isSlowed = false;
 
     [Header("VARIABLES DE RUIDO")]
     public SphereCollider noiseCollider;
@@ -39,10 +39,12 @@ public class PlayerMovement : MonoBehaviour
     public CapsuleCollider DeathCollision;
 
     #region PRIVATES BOOLS
-    private bool isPlayerCrouching = false;
-    private bool isRunning = false;         // Nuevo: Indica si el jugador está actualmente corriendo (Shift presionado y moviéndose)
-    private bool isStaminaEmpty = false;    // Nuevo: Indica si la estamina ha llegado a cero
-    private float timeSinceLastRun = 0f;    // Nuevo: Contador para el retraso de regeneración
+    [Header("ESTADO DEL JUGADOR")]
+    public bool isPlayerCrouching = false;
+    public bool isRunning = false;
+    public bool isStaminaEmpty = false;
+    private float timeSinceLastRun = 0f;
+    private bool isAdrenalineActive = false;
 
     private Transform cam;
     private float horizontalRotation, verticalRotation;
@@ -66,7 +68,7 @@ public class PlayerMovement : MonoBehaviour
     {
         cc = GetComponent<CapsuleCollider>();
         currentHealth = maxHealth;
-        currentStamina = maxStamina; // <-- Inicialización de Estamina
+        currentStamina = maxStamina;
 
         originalMovementSpeed = movementSpeed;
         originalRunSpeed = runSpeed;
@@ -83,7 +85,6 @@ public class PlayerMovement : MonoBehaviour
     {
         Movement();
 
-        // LÓGICA DE STAMINA AÑADIDA
         HandleStamina();
 
         if (Input.GetKeyDown(KeyCode.LeftControl))
@@ -94,50 +95,51 @@ public class PlayerMovement : MonoBehaviour
         UpdateNoiseRadius(currentSpeed);
     }
 
-    // NUEVO MÉTODO PARA MANEJAR EL CONSUMO Y REGENERACIÓN DE STAMINA
     private void HandleStamina()
     {
+        if (isAdrenalineActive && currentStamina < maxStamina)
+        {
+            currentStamina += staminaRegenRate * Time.deltaTime * 2f;
+            currentStamina = Mathf.Min(currentStamina, maxStamina);
+            isStaminaEmpty = false;
+            return;
+        }
+
+
         if (isRunning)
         {
-            // CONSUMO: Si está corriendo, drena estamina
             currentStamina -= staminaDrainRate * Time.deltaTime;
-            currentStamina = Mathf.Max(currentStamina, 0f); // Asegura que no baje de 0
+            currentStamina = Mathf.Max(currentStamina, 0f);
 
-            timeSinceLastRun = 0f; // Reinicia el contador de regeneración
+            timeSinceLastRun = 0f;
 
             if (currentStamina <= 0f)
             {
                 isStaminaEmpty = true;
-                isRunning = false; // Detiene la carrera forzosamente
-                Debug.Log("¡Estamina agotada!");
+                isRunning = false;
+                timeSinceLastRun = -runCooldown;
+                Debug.Log("¡Estamina agotada! Cooldown activado.");
             }
         }
         else if (currentStamina < maxStamina)
         {
-            // REGENERACIÓN
             timeSinceLastRun += Time.deltaTime;
 
             if (timeSinceLastRun >= regenDelay)
             {
-                // Si ha pasado el retraso, regenera estamina
                 currentStamina += staminaRegenRate * Time.deltaTime;
-                currentStamina = Mathf.Min(currentStamina, maxStamina); // Asegura que no exceda el máximo
+                currentStamina = Mathf.Min(currentStamina, maxStamina);
 
-                // Si la estamina ya no está vacía, permite correr de nuevo
-                if (currentStamina > 0f)
+                if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
                 {
                     isStaminaEmpty = false;
                 }
             }
         }
-
-        // Debug para ver el estado de la estamina
-        // Debug.Log($"Estamina: {currentStamina:F2} / {maxStamina} | Corriendo: {isRunning} | Vacía: {isStaminaEmpty}");
     }
 
 
     #region RADIO DE ESCUCHA
-
     private void UpdateNoiseRadius(float currentSpeed)
     {
         if (noiseCollider == null) return;
@@ -172,8 +174,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ** MODIFICACIÓN DEL MÉTODO TAKE DAMAGE **
-    // Ahora acepta la posición del atacante (Enemy)
     public void TakeDamage(float damageAmount, Vector3 attackerPosition)
     {
         currentHealth -= damageAmount;
@@ -187,7 +187,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            ApplyKnockback(attackerPosition); // <-- Llamada al Knockback
+            ApplyKnockback(attackerPosition);
             ApplySlowEffect();
         }
     }
@@ -218,12 +218,10 @@ public class PlayerMovement : MonoBehaviour
 
     public void ApplySlowEffect()
     {
-        // Detiene cualquier efecto de lentitud anterior para reiniciar la duración
         if (isSlowed)
         {
             StopCoroutine("SlowDown");
         }
-        // Inicia la corrutina
         StartCoroutine("SlowDown");
     }
 
@@ -231,14 +229,11 @@ public class PlayerMovement : MonoBehaviour
     {
         isSlowed = true;
 
-        // Aplicar la reducción de velocidad
         movementSpeed = originalMovementSpeed * slowMultiplier;
         runSpeed = originalRunSpeed * slowMultiplier;
 
-        // Esperar la duración especificada
         yield return new WaitForSeconds(slowDuration);
 
-        // Restaurar la velocidad original
         movementSpeed = originalMovementSpeed;
         runSpeed = originalRunSpeed;
         isSlowed = false;
@@ -256,24 +251,19 @@ public class PlayerMovement : MonoBehaviour
     #region MOVIMIENTO
     private void Movement()
     {
-        // Movimiento base (caminar)
         currentSpeed = movementSpeed;
-        isRunning = false; // Reset de la bandera de correr
+        isRunning = false;
 
-        // Comprobación para correr
-        // AÑADIDO: Verifica si se presiona Shift Y si el jugador NO está en slow Y si la estamina NO está vacía
-        if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
+        if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && (!isStaminaEmpty || isAdrenalineActive))
         {
-            // Verificamos que el jugador se esté moviendo realmente para no gastar estamina quieto
             if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
             {
                 currentSpeed = runSpeed;
-                isRunning = true; // El jugador está corriendo
+                isRunning = true;
             }
         }
 
-        // Si el jugador intenta correr pero ya tiene la estamina vacía, forzamos a caminar.
-        if (isStaminaEmpty)
+        if (isStaminaEmpty && !isAdrenalineActive)
         {
             currentSpeed = movementSpeed;
             isRunning = false;
@@ -335,15 +325,33 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Método para agregar estamina (ej: con un consumible, opcional)
     public void AddStamina(float amount)
     {
         if (currentStamina < maxStamina)
         {
             currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
-            isStaminaEmpty = false; // Asegura que pueda correr si agrega estamina
+            isStaminaEmpty = false;
             Debug.Log($"[Consumible] Recargado {amount} de estamina. Estamina actual: {currentStamina}");
         }
+    }
+
+    public void ActivateAdrenaline(float duration)
+    {
+        StopCoroutine(AdrenalineRoutine(0));
+        StartCoroutine(AdrenalineRoutine(duration));
+    }
+
+    private IEnumerator AdrenalineRoutine(float duration)
+    {
+        isAdrenalineActive = true;
+        isStaminaEmpty = false;
+
+        Debug.Log($"Adrenalina activada. Estamina infinita por {duration} segundos.");
+
+        yield return new WaitForSeconds(duration);
+
+        isAdrenalineActive = false;
+        Debug.Log("Adrenalina agotada. La estamina vuelve a comportarse normalmente.");
     }
     #endregion
 }
