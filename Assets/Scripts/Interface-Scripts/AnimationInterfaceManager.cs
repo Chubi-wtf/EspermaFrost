@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AnimationInterfaceManager : MonoBehaviour
 {
@@ -12,5 +13,14 @@ public class AnimationInterfaceManager : MonoBehaviour
     public void Window()
     {
         anim2.SetTrigger("WindowAnim");
+    }
+
+    public void Jugar()
+    {
+        SceneManager.LoadScene("Escena 1");
+    }
+    public void SalirDelJuego()
+    {
+        Application.Quit();
     }
 }
