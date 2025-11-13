@@ -7,9 +7,17 @@ public class PlayerMovement : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
+    [Header("VARIABLES DE STAMINA")]
+    public float maxStamina = 100f;
+    public float currentStamina;
+    public float staminaDrainRate = 15f;
+    public float staminaRegenRate = 10f;
+    public float regenDelay = 1.5f;
+    public float runCooldown = 2f; 
+
     [Header("CONFIGURACIÓN DE KNOCKBACK")]
     public float knockbackForce = 15f;
-    public float knockbackDuration = 0.15f; // <<-- NUEVA VARIABLE: Tiempo que dura el empuje
+    public float knockbackDuration = 0.15f;
 
     [Header("VARIABLES DE MOVIMIENTO")]
     public float mouseSensitivity;
@@ -17,8 +25,8 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 10f;
 
     [Header("VARIABLES EFECTO DE REDUCCIÓN DE VELOCIDAD")]
-    public float slowDuration = 2f;         // Duración en segundos del efecto
-    public float slowMultiplier = 0.5f;     // Multiplicador de velocidad (0.5 = 50% de velocidad)
+    public float slowDuration = 2f;      // Duración en segundos del efecto
+    public float slowMultiplier = 0.5f;    // Multiplicador de velocidad (0.5 = 50% de velocidad)
     private float originalMovementSpeed;    // Para guardar la velocidad base original
     private float originalRunSpeed;         // Para guardar la velocidad de correr original
     public bool isSlowed = false;          // Evita aplicar el slow varias veces
@@ -31,7 +39,11 @@ public class PlayerMovement : MonoBehaviour
     public CapsuleCollider DeathCollision;
 
     #region PRIVATES BOOLS
-    private bool isPlayerCrouching = false;
+    [Header("ESTADO DEL JUGADOR")]
+    public bool isPlayerCrouching = false;
+    public bool isRunning = false;         // Cambiado a public
+    public bool isStaminaEmpty = false;    // Cambiado a public
+    private float timeSinceLastRun = 0f;
 
     private Transform cam;
     private float horizontalRotation, verticalRotation;
@@ -55,7 +67,7 @@ public class PlayerMovement : MonoBehaviour
     {
         cc = GetComponent<CapsuleCollider>();
         currentHealth = maxHealth;
-
+        currentStamina = maxStamina; // <-- Inicialización de Estamina
 
         originalMovementSpeed = movementSpeed;
         originalRunSpeed = runSpeed;
@@ -72,6 +84,9 @@ public class PlayerMovement : MonoBehaviour
     {
         Movement();
 
+        // LÓGICA DE STAMINA AÑADIDA
+        HandleStamina();
+
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             Crouch();
@@ -79,6 +94,45 @@ public class PlayerMovement : MonoBehaviour
 
         UpdateNoiseRadius(currentSpeed);
     }
+
+    // NUEVO MÉTODO PARA MANEJAR EL CONSUMO Y REGENERACIÓN DE STAMINA
+    private void HandleStamina()
+    {
+        if (isRunning)
+        {
+            // CONSUMO: Si está corriendo, drena estamina
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+            currentStamina = Mathf.Max(currentStamina, 0f);
+
+            timeSinceLastRun = 0f;
+
+            if (currentStamina <= 0f)
+            {
+                isStaminaEmpty = true;
+                isRunning = false;
+                timeSinceLastRun = -runCooldown; // <-- NUEVO: Inicia el cooldown
+                Debug.Log("¡Estamina agotada! Cooldown activado.");
+            }
+        }
+        else if (currentStamina < maxStamina)
+        {
+            // REGENERACIÓN
+            timeSinceLastRun += Time.deltaTime;
+
+            // NUEVO: Solo regenera si no está en cooldown
+            if (timeSinceLastRun >= Mathf.Max(regenDelay, 0f))
+            {
+                currentStamina += staminaRegenRate * Time.deltaTime;
+                currentStamina = Mathf.Min(currentStamina, maxStamina);
+
+                if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
+                {
+                    isStaminaEmpty = false;
+                }
+            }
+        }
+    }
+
 
     #region RADIO DE ESCUCHA
 
@@ -200,11 +254,27 @@ public class PlayerMovement : MonoBehaviour
     #region MOVIMIENTO
     private void Movement()
     {
+        // Movimiento base (caminar)
         currentSpeed = movementSpeed;
+        isRunning = false; // Reset de la bandera de correr
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        // Comprobación para correr
+        // AÑADIDO: Verifica si se presiona Shift Y si el jugador NO está en slow Y si la estamina NO está vacía
+        if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
         {
-            currentSpeed = runSpeed;
+            // Verificamos que el jugador se esté moviendo realmente para no gastar estamina quieto
+            if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+            {
+                currentSpeed = runSpeed;
+                isRunning = true; // El jugador está corriendo
+            }
+        }
+
+        // Si el jugador intenta correr pero ya tiene la estamina vacía, forzamos a caminar.
+        if (isStaminaEmpty)
+        {
+            currentSpeed = movementSpeed;
+            isRunning = false;
         }
 
         keyboardX = Input.GetAxis("Horizontal");
@@ -253,14 +323,25 @@ public class PlayerMovement : MonoBehaviour
     }
     #endregion
 
+    #region HEALTH & STAMINA
     public void Heal(float amount)
     {
-        // Solo curar si la vida actual no está al máximo
         if (currentHealth < maxHealth)
         {
             currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
             Debug.Log($"[Botiquín] Curado {amount} de vida. Salud actual: {currentHealth}");
         }
-        // Devolvemos un booleano para indicar si la curación fue aplicada (útil para consumir el ítem o no)
     }
+
+    // Método para agregar estamina (ej: con un consumible, opcional)
+    public void AddStamina(float amount)
+    {
+        if (currentStamina < maxStamina)
+        {
+            currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
+            isStaminaEmpty = false; // Asegura que pueda correr si agrega estamina
+            Debug.Log($"[Consumible] Recargado {amount} de estamina. Estamina actual: {currentStamina}");
+        }
+    }
+    #endregion
 }
