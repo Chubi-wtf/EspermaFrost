@@ -15,5 +15,7 @@ MonoBehaviour:
   itemName: "Botiqu\xEDn"
   itemColor: {r: 1, g: 0, b: 0, a: 1}
   itemType: 3
-  useDuration: 2
+  useDuration: 3
   healAmount: 50
+  adrenalineDuration: 0
+  keyCardID: 

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7b9e15b3b4f42440abb9709e766a249, type: 3}
   m_Name: KeyCard
   m_EditorClassIdentifier: 
-  itemName: 
-  itemColor: {r: 0, g: 0, b: 0, a: 0}
-  itemType: 0
+  itemName: KeyCard_Principal
+  itemColor: {r: 0, g: 0.24096298, b: 1, a: 1}
+  itemType: 1
   useDuration: 0
   healAmount: 0
   adrenalineDuration: 0
-  keyCardID: 
+  keyCardID: Principal
