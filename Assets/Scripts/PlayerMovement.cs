@@ -343,5 +343,32 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log($"[Consumible] Recargado {amount} de estamina. Estamina actual: {currentStamina}");
         }
     }
+    public void ActivateAdrenaline(float duration)
+    {
+        StartCoroutine(AdrenalineRoutine(duration));
+    }
+
+    private IEnumerator AdrenalineRoutine(float duration)
+    {
+        Debug.Log("Adrenalina activada!");
+
+        float originalRun = runSpeed;
+        float originalWalk = movementSpeed;
+
+        // Aumenta velocidades temporalmente
+        runSpeed *= 1.5f;
+        movementSpeed *= 1.5f;
+
+        // Evita que el jugador quede ralentizado con efectos antiguos
+        isSlowed = false;
+
+        yield return new WaitForSeconds(duration);
+
+        // Restauramos velocidades normales
+        runSpeed = originalRun;
+        movementSpeed = originalWalk;
+
+        Debug.Log("Adrenalina terminada.");
+    }
     #endregion
 }
