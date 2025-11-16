@@ -8,6 +8,7 @@ public class PlayerInventory : MonoBehaviour
     public ItemTemplate[] inventory;
     public Inventory_UI_Slot[] inventory_UI_Slots;
 
+
     private void Awake()
     {
         Instance = this;
@@ -15,7 +16,9 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-        inventory = new ItemTemplate[3];
+        // inventory = new ItemTemplate[3]; //Antiguo
+        inventory = new ItemTemplate[1]; 
+
     }
 
     // NUEVO: Método público llamado por PlayerInteraction.cs
@@ -32,6 +35,11 @@ public class PlayerInventory : MonoBehaviour
             {
                 inventory[i] = itemToAdd.itemTemplate;
                 inventory_UI_Slots[i].SetSlot(itemToAdd);
+                if (itemToAdd.objectToActivate != null)
+                {
+                    itemToAdd.objectToActivate.SetActive(true);
+                    Debug.Log("Objeto activado al recoger el ítem.");
+                }
                 Destroy(itemToAdd.gameObject);
                 Debug.Log($"Ítem {itemToAdd.itemTemplate.itemName} recogido con éxito.");
                 return; // Salir después de añadir
