@@ -15,6 +15,7 @@ public class DoorController : MonoBehaviour
 
     private AudioSource audioSource;
     private bool isOpen = false;
+    private bool playerInRange = false;
 
     void Awake()
     {
@@ -32,8 +33,17 @@ public class DoorController : MonoBehaviour
             victoryPanel.SetActive(false);
     }
 
-    // Esta es la función que llamará el Player
-    public void InteractDoor()
+    void Update()
+    {
+        // Si el jugador está en rango y toca la puerta, se activa
+        if (playerInRange && !isOpen)
+        {
+            OpenDoor();
+        }
+    }
+
+    // Esta es la función que se llama cuando el jugador toca la puerta
+    public void OpenDoor()
     {
         // Si ya está abierta, no hacemos nada
         if (isOpen) return;
@@ -76,6 +86,23 @@ public class DoorController : MonoBehaviour
             // Liberar cursor
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+        }
+    }
+
+    // Detectar cuando el jugador toca la puerta
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            playerInRange = true;
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            playerInRange = false;
         }
     }
 

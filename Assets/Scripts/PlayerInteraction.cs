@@ -5,7 +5,6 @@ public class PlayerInteraction : MonoBehaviour
 {
     private bool isUsingItem = false;
     private PlayerMovement playerMovement;
-    private DoorController nearbyDoor; // Referencia a la puerta cercana
 
     private void Awake()
     {
@@ -24,12 +23,6 @@ public class PlayerInteraction : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1)) UseItemFromSlot(0);
         if (Input.GetKeyDown(KeyCode.Alpha2)) UseItemFromSlot(1);
         if (Input.GetKeyDown(KeyCode.Alpha3)) UseItemFromSlot(2);
-
-        // Interacción con puertas (Tecla E)
-        if (Input.GetKeyDown(KeyCode.E) && nearbyDoor != null)
-        {
-            nearbyDoor.InteractDoor();
-        }
     }
 
     private void UseItemFromSlot(int slotIndex)
@@ -83,31 +76,5 @@ public class PlayerInteraction : MonoBehaviour
         }
 
         isUsingItem = false;
-    }
-
-    // Detectar cuando el jugador está cerca de una puerta
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Door")) // Asegúrate de que tu puerta tenga el tag "Door"
-        {
-            DoorController door = other.GetComponent<DoorController>();
-            if (door != null)
-            {
-                nearbyDoor = door;
-                Debug.Log("Presiona E para interactuar con la puerta");
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Door"))
-        {
-            DoorController door = other.GetComponent<DoorController>();
-            if (door != null && door == nearbyDoor)
-            {
-                nearbyDoor = null;
-            }
-        }
     }
 }
