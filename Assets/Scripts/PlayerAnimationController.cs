@@ -7,9 +7,9 @@ public class PlayerAnimationController : MonoBehaviour
     private PlayerMovement playerMovement;
 
     [Header("Par�metros de Animaci�n")]
-    private readonly int isMovingHash = Animator.StringToHash("isMoving");
-    private readonly int isCrouchingHash = Animator.StringToHash("isCrouching");
-    private readonly int isRunningHash = Animator.StringToHash("isRunning");
+    private readonly int isMovingHash = Animator.StringToHash("IsMoving");
+    private readonly int isCrouchingHash = Animator.StringToHash("IsCrouching");
+    private readonly int isRunningHash = Animator.StringToHash("IsRunning");
     private readonly int moveSpeedHash = Animator.StringToHash("moveSpeed");
 
     private void Awake()
@@ -23,10 +23,20 @@ public class PlayerAnimationController : MonoBehaviour
         }
     }
 
-    private void Update()
+
+        private void Update()
     {
         UpdateAnimationParameters();
+
+        // DEBUG TEMPORAL
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Debug.Log($"Crouching: {animator.GetBool("IsCrouching")}, " +
+                      $"Moving: {animator.GetBool("IsMoving")}, " +
+                      $"Running: {animator.GetBool("IsRunning")}");
+        }
     }
+
 
     private void UpdateAnimationParameters()
     {
