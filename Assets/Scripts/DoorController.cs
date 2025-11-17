@@ -65,10 +65,10 @@ public class DoorController : MonoBehaviour
 
             // Configurar textos
             if (escapeText != null)
-                escapeText.text = "Escapaste, por ahora...";
+                escapeText.text = "Escapaste... por ahora. pero sabes que sea lo que se tragó a tu amigo, sigue respirando detrás de tí.";
 
             if (victoryText != null)
-                victoryText.text = "!Victoria! Gracias por probar esta demo, hecho por el equipo de No-Name";
+                victoryText.text = "¡Terminaste la demo! Gracias por llegar hasta acá… po. El equipo No-Name está muy orgulloso de ti.";
 
             // Pausar el juego
             Time.timeScale = 0f;
