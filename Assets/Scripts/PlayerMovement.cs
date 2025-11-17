@@ -37,6 +37,14 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("DEATH COLLIDER")]
     public CapsuleCollider DeathCollision;
+    [Header("Configuración de Agacharse")]
+    public float crouchHeight = 1f;
+    public float crouchSpeedMultiplier = 0.5f;
+    public float crouchTransitionSpeed = 5f;
+
+    private float standingHeight;
+    private Vector3 standingCenter;
+    private bool isTransitioningCrouch = false;
 
     #region PRIVATES BOOLS
     [Header("ESTADO DEL JUGADOR")]
@@ -78,6 +86,10 @@ public class PlayerMovement : MonoBehaviour
             noiseCollider.radius = baseNoiseRadius;
             noiseCollider.isTrigger = true;
         }
+
+        cc = GetComponent<CapsuleCollider>();
+        standingHeight = cc.height;
+        standingCenter = cc.center;
     }
 
     private void Update()
@@ -255,30 +267,34 @@ public class PlayerMovement : MonoBehaviour
     private void Movement()
     {
         // Movimiento base (caminar)
-        currentSpeed = movementSpeed;
-        isRunning = false; // Reset de la bandera de correr
+        float targetSpeed = movementSpeed;
+        isRunning = false;
 
-        // Comprobación para correr
-        // AÑADIDO: Verifica si se presiona Shift Y si el jugador NO está en slow Y si la estamina NO está vacía
-        if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
+        // Aplicar multiplicador de velocidad si está agachado
+        if (isPlayerCrouching)
         {
-            // Verificamos que el jugador se esté moviendo realmente para no gastar estamina quieto
+            targetSpeed *= crouchSpeedMultiplier;
+        }
+        // Comprobación para correr (solo si no está agachado)
+        else if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
+        {
             if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
             {
-                currentSpeed = runSpeed;
-                isRunning = true; // El jugador está corriendo
+                targetSpeed = runSpeed;
+                isRunning = true;
             }
         }
 
         // Si el jugador intenta correr pero ya tiene la estamina vacía, forzamos a caminar.
         if (isStaminaEmpty)
         {
-            currentSpeed = movementSpeed;
+            targetSpeed = movementSpeed;
             isRunning = false;
         }
 
+        currentSpeed = targetSpeed;
         keyboardX = Input.GetAxis("Horizontal");
-        keyboardY = Input.GetAxis("Vertical");
+        keyboardY = Input.GetAxis("Vertical");  
 
         float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * mouseSensitivity;
@@ -292,21 +308,45 @@ public class PlayerMovement : MonoBehaviour
         cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
     }
 
+    #region cambios Chubi
     private void Crouch()
     {
-        isPlayerCrouching = !isPlayerCrouching;
+        if (isTransitioningCrouch) return;
 
-        if (isPlayerCrouching)
+        isPlayerCrouching = !isPlayerCrouching;
+        isTransitioningCrouch = true;
+
+        StartCoroutine(TransitionCrouch());
+    }
+
+    private System.Collections.IEnumerator TransitionCrouch()
+    {
+        float targetHeight = isPlayerCrouching ? crouchHeight : standingHeight;
+        Vector3 targetCenter = isPlayerCrouching ? new Vector3(0f, -0.5f, 0f) : standingCenter;
+
+        float currentHeight = cc.height;
+        Vector3 currentCenter = cc.center;
+
+        float t = 0f;
+
+        while (t < 1f)
         {
-            cc.height = 1f;
-            cc.center = new Vector3(0f, -0.5f, 0f);
+            t += Time.deltaTime * crouchTransitionSpeed;
+            cc.height = Mathf.Lerp(currentHeight, targetHeight, t);
+            cc.center = Vector3.Lerp(currentCenter, targetCenter, t);
+            yield return null;
         }
-        else
+
+        isTransitioningCrouch = false;
+
+        // Notificar al controlador de animaciones
+        PlayerAnimationController animController = GetComponent<PlayerAnimationController>();
+        if (animController != null)
         {
-            cc.height = 2f;
-            cc.center = new Vector3(0f, 0f, 0f);
+            animController.SetCrouchingState(isPlayerCrouching);
         }
     }
+    #endregion
 
     private void FixedUpdate()
     {
@@ -344,4 +384,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     #endregion
+
+
+    
 }
