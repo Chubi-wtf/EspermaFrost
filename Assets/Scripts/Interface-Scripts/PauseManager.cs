@@ -23,7 +23,11 @@ public class PauseManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q))
         {
             if (isPause)
+            {
                 Reanudar();
+                menuConfig.SetActive(false);
+                menuPausa.SetActive(true);
+            }
             else
                 Pausar();
         }
@@ -36,7 +40,6 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 0f;
         isPause = true;
         Cursor.lockState = CursorLockMode.None;
-
     }
 
     public void Reanudar()
