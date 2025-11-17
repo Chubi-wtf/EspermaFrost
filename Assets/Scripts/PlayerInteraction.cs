@@ -141,9 +141,9 @@ public class PlayerInteraction : MonoBehaviour
                 playerMovement.Heal(itemTemplate.healAmount);
                 break;
 
-            case ItemTemplate.ITEM_TYPE.Adrenalina:
-                playerMovement.ActivateAdrenaline(itemTemplate.adrenalineDuration);
-                break;
+            //case ItemTemplate.ITEM_TYPE.Adrenalina:
+                //playerMovement.ActivateAdrenaline(itemTemplate.adrenalineDuration);
+                //break;
         }
 
         PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
