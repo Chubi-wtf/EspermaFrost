@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public static PlayerMovement Instance;
+
     [Header("VARIABLES DE VIDA")]
     public float maxHealth = 100f;
     public float currentHealth;
@@ -40,11 +42,13 @@ public class PlayerMovement : MonoBehaviour
 
     #region PRIVATES BOOLS
     [Header("ESTADO DEL JUGADOR")]
+    private Coroutine adrenalineCoroutine;
     public bool isPlayerCrouching = false;
     public bool isRunning = false;
     public bool isStaminaEmpty = false;
     private float timeSinceLastRun = 0f;
     private bool isAdrenalineActive = false;
+    public bool canMove = true; // NUEVO: Control para bloquear movimiento y cámara
 
     private Transform cam;
     private float horizontalRotation, verticalRotation;
@@ -56,9 +60,21 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody rb;
     CapsuleCollider cc;
+    private const string ADRENALINE_ROUTINE = "AdrenalineRoutine"; // Para corrutina de Adrenalina
 
     private void Awake()
     {
+        // Asignación de la instancia Singleton
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject); // Evita duplicados
+            return;
+        }
+
         Cursor.lockState = CursorLockMode.Locked;
         cam = GetComponentInChildren<Camera>().transform;
         rb = GetComponent<Rigidbody>();
@@ -251,6 +267,8 @@ public class PlayerMovement : MonoBehaviour
     #region MOVIMIENTO
     private void Movement()
     {
+        if (!canMove) return; // BLOQUEO: Si no puede moverse, sale inmediatamente
+
         currentSpeed = movementSpeed;
         isRunning = false;
 
@@ -272,6 +290,7 @@ public class PlayerMovement : MonoBehaviour
         keyboardX = Input.GetAxis("Horizontal");
         keyboardY = Input.GetAxis("Vertical");
 
+        // ROTACIÓN DE CÁMARA (BLOQUEADA por canMove)
         float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * mouseSensitivity;
 
@@ -316,13 +335,20 @@ public class PlayerMovement : MonoBehaviour
     #endregion
 
     #region HEALTH & STAMINA
-    public void Heal(float amount)
+    public float Heal(float amount)
     {
-        if (currentHealth < maxHealth)
+        float healthBeforeHeal = currentHealth;
+
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+
+        float actualHealedAmount = currentHealth - healthBeforeHeal;
+
+        if (actualHealedAmount > 0)
         {
-            currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-            Debug.Log($"[Botiquín] Curado {amount} de vida. Salud actual: {currentHealth}");
+            Debug.Log($"[Botiquín] Curado {actualHealedAmount} de vida. Salud actual: {currentHealth}");
         }
+
+        return actualHealedAmount;
     }
 
     public void AddStamina(float amount)
@@ -337,8 +363,15 @@ public class PlayerMovement : MonoBehaviour
 
     public void ActivateAdrenaline(float duration)
     {
-        StopCoroutine(AdrenalineRoutine(0));
-        StartCoroutine(AdrenalineRoutine(duration));
+        // 1. Detener la rutina anterior si existe (si el jugador spamea la adrenalina)
+        if (adrenalineCoroutine != null)
+        {
+            StopCoroutine(adrenalineCoroutine);
+            adrenalineCoroutine = null; // Opcional, pero buena práctica
+        }
+
+        // 2. Iniciar la corrutina con el parámetro 'duration' y almacenar la referencia
+        adrenalineCoroutine = StartCoroutine(AdrenalineRoutine(duration));
     }
 
     private IEnumerator AdrenalineRoutine(float duration)
