@@ -6,53 +6,69 @@ public class PlayerAnimationController : MonoBehaviour
     private Animator animator;
     private PlayerMovement playerMovement;
 
-    [Header("Parámetros de Animación")]
-    // Asegúrate que estos nombres sean IDÉNTICOS a los de tu ventana Animator
+    [Header("Par�metros de Animaci�n")]
     private readonly int isMovingHash = Animator.StringToHash("IsMoving");
     private readonly int isCrouchingHash = Animator.StringToHash("IsCrouching");
     private readonly int isRunningHash = Animator.StringToHash("IsRunning");
-    private readonly int speedHash = Animator.StringToHash("Speed"); // Corregido a "Speed"
-
-    // Variables para calcular velocidad manual
-    private Vector3 lastPosition;
+    private readonly int moveSpeedHash = Animator.StringToHash("moveSpeed");
 
     private void Awake()
     {
         animator = GetComponentInChildren<Animator>();
         playerMovement = GetComponent<PlayerMovement>();
-        lastPosition = transform.position;
 
-        if (animator == null) Debug.LogError("¡Falta el Animator en los hijos!");
+        if (animator == null)
+        {
+            Debug.LogError("PlayerAnimationController: No se encontr� el Animator");
+        }
     }
 
-    private void Update()
+
+        private void Update()
     {
-        // 1. Calcular velocidad basada en cambio de posición real
-        // Ignoramos la altura (Y) para obtener solo velocidad horizontal
-        Vector3 currentPosFlat = new Vector3(transform.position.x, 0, transform.position.z);
-        Vector3 lastPosFlat = new Vector3(lastPosition.x, 0, lastPosition.z);
+        UpdateAnimationParameters();
 
-        float distanceMoved = Vector3.Distance(currentPosFlat, lastPosFlat);
-        float currentSpeed = distanceMoved / Time.deltaTime;
+        // DEBUG TEMPORAL
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Debug.Log($"Crouching: {animator.GetBool("IsCrouching")}, " +
+                      $"Moving: {animator.GetBool("IsMoving")}, " +
+                      $"Running: {animator.GetBool("IsRunning")}");
+        }
+    }
 
-        // Actualizamos la última posición para el siguiente frame
-        lastPosition = transform.position;
 
-        // 2. Actualizar Animator
+    private void UpdateAnimationParameters()
+    {
+        if (animator == null || playerMovement == null) return;
+
+        // Calcular velocidad de movimiento
+        Vector3 horizontalVelocity = new Vector3(
+            playerMovement.GetComponent<Rigidbody>().linearVelocity.x,
+            0f,
+            playerMovement.GetComponent<Rigidbody>().linearVelocity.z
+        );
+        float currentSpeed = horizontalVelocity.magnitude;
+
+        // Actualizar par�metros del Animator
+        animator.SetBool(isMovingHash, currentSpeed > 0.1f);
+        animator.SetBool(isCrouchingHash, playerMovement.isPlayerCrouching);
+        animator.SetBool(isRunningHash, playerMovement.isRunning && !playerMovement.isPlayerCrouching);
+        animator.SetFloat(moveSpeedHash, currentSpeed);
+
+        // Debug opcional
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            Debug.Log($"Moving: {currentSpeed > 0.1f}, Crouching: {playerMovement.isPlayerCrouching}, Running: {playerMovement.isRunning}");
+        }
+    }
+
+    // M�todo para forzar una animaci�n (�til para transiciones especiales)
+    public void SetCrouchingState(bool crouching)
+    {
         if (animator != null)
         {
-            // "Speed" es mayor a 0.05f para evitar micro-movimientos
-            bool isMoving = currentSpeed > 0.05f;
-
-            animator.SetFloat(speedHash, currentSpeed);
-            animator.SetBool(isMovingHash, isMoving);
-
-            // Solo actualizamos Crouch y Run si tenemos la referencia al movimiento
-            if (playerMovement != null)
-            {
-                animator.SetBool(isCrouchingHash, playerMovement.isPlayerCrouching);
-                animator.SetBool(isRunningHash, playerMovement.isRunning);
-            }
+            animator.SetBool(isCrouchingHash, crouching);
         }
     }
 }

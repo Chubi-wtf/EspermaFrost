@@ -8,11 +8,6 @@ public class DoorController : MonoBehaviour
     public Animator anim;
     public AudioClip openSound;
 
-    [Header("Configuración de Seguridad")]
-    // Si dejas esto vacío en el Inspector, la puerta se abre sin llave.
-    // Si pones "Blue", el jugador necesita una KeyCard con ID "Blue".
-    public string requiredKeyID;
-
     [Header("Panel de Victoria")]
     public GameObject victoryPanel;
     public TextMeshProUGUI escapeText;
@@ -20,62 +15,56 @@ public class DoorController : MonoBehaviour
 
     private AudioSource audioSource;
     private bool isOpen = false;
-
-    // Quitamos playerInRange porque ahora usamos Raycast (tecla E), 
-    // pero lo dejo si quieres mantener compatibilidad híbrida.
     private bool playerInRange = false;
 
     void Awake()
     {
+        // Busca el Animator (si no está asignado)
         if (anim == null)
+        {
             anim = GetComponentInChildren<Animator>();
+        }
 
         audioSource = GetComponent<AudioSource>();
-        if (audioSource != null) audioSource.playOnAwake = false;
+        audioSource.playOnAwake = false;
 
+        // Ocultar panel al inicio
         if (victoryPanel != null)
             victoryPanel.SetActive(false);
     }
 
-    // --- ESTE ES EL MÉTODO QUE FALTABA Y CAUSABA EL ERROR ---
-    public bool InteractDoor(string playerKeyID)
+    void Update()
     {
-        if (isOpen) return false; // Ya está abierta
-
-        // 1. Verificar si la puerta requiere llave
-        if (!string.IsNullOrEmpty(requiredKeyID))
+        // Si el jugador está en rango y toca la puerta, se activa
+        if (playerInRange && !isOpen)
         {
-            // 2. Verificar si el ID de la llave del jugador coincide
-            if (playerKeyID != requiredKeyID)
-            {
-                // Sonido de "Acceso Denegado" iría aquí
-                Debug.Log($"Acceso denegado. Se requiere tarjeta: {requiredKeyID}");
-                return false; // Indica que falló la interacción
-            }
+            OpenDoor();
         }
-
-        // Si llegamos aquí, o no pide llave, o tenemos la correcta
-        OpenDoor();
-        return true; // Indica éxito
     }
-    // -------------------------------------------------------
 
+    // Esta es la función que se llama cuando el jugador toca la puerta
     public void OpenDoor()
     {
+        // Si ya está abierta, no hacemos nada
         if (isOpen) return;
 
+        // Marcamos como abierta
         isOpen = true;
 
-        if (anim != null) anim.SetTrigger("Open");
-
-        if (openSound != null && audioSource != null)
-            audioSource.PlayOneShot(openSound);
-
-        // Si es la puerta final, mostramos la victoria
-        if (victoryPanel != null)
+        // Activamos la animación
+        if (anim != null)
         {
-            Invoke("ShowVictoryPanel", 1.0f); // Pequeño delay para ver la puerta abrirse
+            anim.SetTrigger("Open");
         }
+
+        // Reproducimos el sonido
+        if (openSound != null)
+        {
+            audioSource.PlayOneShot(openSound);
+        }
+
+        // Mostrar panel de victoria después de un pequeño delay
+        Invoke("ShowVictoryPanel", 0f);
     }
 
     private void ShowVictoryPanel()
@@ -84,38 +73,52 @@ public class DoorController : MonoBehaviour
         {
             victoryPanel.SetActive(true);
 
+            // Configurar textos
             if (escapeText != null)
-                escapeText.text = "Escapaste... por ahora. Pero sabes que sea lo que sea que se tragó a tu amigo, sigue respirando detrás de ti.";
+                escapeText.text = "Escapaste... por ahora. pero sabes que sea lo que se tragó a tu amigo, sigue respirando detrás de tí.";
 
             if (victoryText != null)
-                victoryText.text = "¡Terminaste la demo! El equipo No-Name está muy orgulloso de ti.";
+                victoryText.text = "¡Terminaste la demo! Gracias por llegar hasta acá… po. El equipo No-Name está muy orgulloso de ti.";
 
+            // Pausar el juego
             Time.timeScale = 0f;
+
+            // Liberar cursor
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
     }
 
-    // Mantenemos esto por si quieres que TAMBIÉN se abra al chocar (opcional)
+    // Detectar cuando el jugador toca la puerta
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player") && string.IsNullOrEmpty(requiredKeyID))
+        if (collision.gameObject.CompareTag("Player"))
         {
-            // Solo se abre al chocar si NO requiere llave
-            OpenDoor();
+            playerInRange = true;
         }
     }
 
-    // Métodos de UI
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            playerInRange = false;
+        }
+    }
+
+    // Método para reiniciar el juego (puedes conectar esto a un botón en el panel)
     public void RestartGame()
     {
         Time.timeScale = 1f;
+        // Reiniciar la escena actual
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
     }
 
+    // Método para salir del juego (puedes conectar esto a un botón en el panel)
     public void QuitGame()
     {
         Application.Quit();
+
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
