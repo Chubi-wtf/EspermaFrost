@@ -282,7 +282,7 @@ public class PlayerMovement : MonoBehaviour
 
         horizontalRotation += mouseX;
         verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -90, 90);
+        verticalRotation = Mathf.Clamp(verticalRotation, -60, 60);
 
         transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, horizontalRotation, transform.localEulerAngles.z);
         cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
