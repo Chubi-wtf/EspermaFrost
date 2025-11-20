@@ -72,10 +72,10 @@ public class EnemyController : MonoBehaviour
         CheckProximityAttack();
 
         // Esto siempre envía la velocidad al Blend Tree
-        if (anim != null)
-        {
-            anim.SetFloat("Speed", agent.velocity.magnitude);
-        }
+        //if (anim != null)
+        //{
+        //    anim.SetFloat("Speed", agent.velocity.magnitude);   // Cerrado temporal
+        //}
     }
     #endregion
 

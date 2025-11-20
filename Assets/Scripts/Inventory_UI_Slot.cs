@@ -5,12 +5,12 @@ using UnityEngine.UI;
 public class Inventory_UI_Slot : MonoBehaviour
 {
     public Image slotImage;
-    public TextMeshProUGUI slotText;
+    //public TextMeshProUGUI slotText;
 
     private void Awake()
     {
         slotImage = GetComponent<Image>();
-        slotText = GetComponentInChildren<TextMeshProUGUI>();
+        //slotText = GetComponentInChildren<TextMeshProUGUI>();
     }
 
     // CORREGIDO (Arregla Errores 1, 10, 11, 12)
@@ -18,7 +18,7 @@ public class Inventory_UI_Slot : MonoBehaviour
     public void SetSlot(ItemConfig itemToSet)
     {
         slotImage.color = itemToSet.itemTemplate.itemColor;
-        slotText.text = itemToSet.itemTemplate.itemName;
+        //slotText.text = itemToSet.itemTemplate.itemName;
     }
 
     // --- MÉTODO CORREGIDO ---
@@ -28,7 +28,7 @@ public class Inventory_UI_Slot : MonoBehaviour
     {
         // 1. Limpiar la UI
         slotImage.color = Color.white;
-        slotText.text = null;
+        //slotText.text = null;
 
         // 2. Limpiar el inventario de datos
         if (PlayerInventory.Instance.inventory[buttonIndex] != null)

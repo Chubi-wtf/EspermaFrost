@@ -51,10 +51,10 @@ public class PlayerAnimationController : MonoBehaviour
         float currentSpeed = horizontalVelocity.magnitude;
 
         // Actualizar par�metros del Animator
-        animator.SetBool(isMovingHash, currentSpeed > 0.1f);
-        animator.SetBool(isCrouchingHash, playerMovement.isPlayerCrouching);
-        animator.SetBool(isRunningHash, playerMovement.isRunning && !playerMovement.isPlayerCrouching);
-        animator.SetFloat(moveSpeedHash, currentSpeed);
+        //animator.SetBool(isMovingHash, currentSpeed > 0.1f);
+        //animator.SetBool(isCrouchingHash, playerMovement.isPlayerCrouching);
+        //animator.SetBool(isRunningHash, playerMovement.isRunning && !playerMovement.isPlayerCrouching);    // Cerrado Temporal
+        //animator.SetFloat(moveSpeedHash, currentSpeed);
 
         // Debug opcional
         if (Input.GetKeyDown(KeyCode.P))
