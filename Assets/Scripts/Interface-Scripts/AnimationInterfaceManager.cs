@@ -17,7 +17,7 @@ public class AnimationInterfaceManager : MonoBehaviour
 
     public void Jugar()
     {
-        SceneManager.LoadScene("Escena 1");
+        SceneManager.LoadScene("Escena1");
     }
     public void SalirDelJuego()
     {

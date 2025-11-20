@@ -4,6 +4,7 @@ using UnityEngine;
 public class ItemConfig : MonoBehaviour
 {
     public ItemTemplate itemTemplate;
+    public GameObject objectToActivate;
 
     private void Start()
     {

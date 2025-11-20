@@ -7,6 +7,8 @@ public class PauseManager : MonoBehaviour
     public GameObject menuConfig;
     public GameObject pausaUI;
     public GameObject menuPausa;
+    public GameObject hudParaOcultar;
+
 
     private bool isPause = false;
     private bool config = false;
@@ -21,14 +23,19 @@ public class PauseManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q))
         {
             if (isPause)
+            {
                 Reanudar();
+                menuConfig.SetActive(false);
+                menuPausa.SetActive(true);
+            }
             else
                 Pausar();
         }
     }
 
     public void Pausar()
-    {
+    {        
+        hudParaOcultar.SetActive(false);
         pausaUI.SetActive(true);
         Time.timeScale = 0f;
         isPause = true;
@@ -39,9 +46,11 @@ public class PauseManager : MonoBehaviour
     {
         pausaUI.SetActive(false);
         menuConfig.SetActive(false);
+        hudParaOcultar.SetActive(true);
         Time.timeScale = 1f;
         isPause = false;
         Cursor.lockState = CursorLockMode.Locked;
+
     }
 
     public void SalirAlMenu()
