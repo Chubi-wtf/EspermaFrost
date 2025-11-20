@@ -3,11 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class AnimationInterfaceManager : MonoBehaviour
 {
-    public Animator anim, anim2;
+    public Animator anim, anim2, anim3;
 
     public void Button()
     {
         anim.SetTrigger("ButtonAnim");
+    }
+
+    public void Credits()
+    {
+        anim3.SetTrigger("CreditAnim");
     }
 
     public void Window()
