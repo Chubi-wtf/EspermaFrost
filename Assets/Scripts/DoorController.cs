@@ -21,10 +21,6 @@ public class DoorController : MonoBehaviour
     private AudioSource audioSource;
     private bool isOpen = false;
 
-    // Quitamos playerInRange porque ahora usamos Raycast (tecla E), 
-    // pero lo dejo si quieres mantener compatibilidad híbrida.
-    private bool playerInRange = false;
-
     void Awake()
     {
         if (anim == null)

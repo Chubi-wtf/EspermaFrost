@@ -35,11 +35,6 @@ public class PlayerInventory : MonoBehaviour
             {
                 inventory[i] = itemToAdd.itemTemplate;
                 inventory_UI_Slots[i].SetSlot(itemToAdd);
-                if (itemToAdd.objectToActivate != null)
-                {
-                    itemToAdd.objectToActivate.SetActive(true);
-                    Debug.Log("Objeto activado al recoger el ítem.");
-                }
                 Destroy(itemToAdd.gameObject);
                 Debug.Log($"Ítem {itemToAdd.itemTemplate.itemName} recogido con éxito.");
                 return; // Salir después de añadir
