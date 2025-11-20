@@ -26,6 +26,10 @@ public class PlayerMovement : MonoBehaviour
     public float movementSpeed = 5f;
     public float runSpeed = 10f;
 
+    public Vector3 lastPosition;
+
+
+
     [Header("VARIABLES EFECTO DE REDUCCIÓN DE VELOCIDAD")]
     public float slowDuration = 2f;      // Duración en segundos del efecto
     public float slowMultiplier = 0.5f;    // Multiplicador de velocidad
@@ -40,10 +44,30 @@ public class PlayerMovement : MonoBehaviour
     [Header("DEATH COLLIDER")]
     public CapsuleCollider DeathCollision;
 
+
+
+
+    [Header("Variables Sonido")]
+    [SerializeField] public AudioClip damageSoundClip;
+    [SerializeField] public AudioClip walkingSoundClip;
+    [SerializeField] public AudioClip runningSoundClip;
+
+    //Variables para frencuencia de sonidos de caminar:
+    public float stepInterval = 9f;  
+    private float stepTimer = 0f;
+
+
+    [SerializeField] public AudioSource playerAudioSource;
+
+
     #region PRIVATES BOOLS
     [Header("ESTADO DEL JUGADOR")]
     private Coroutine adrenalineCoroutine;
     public bool isPlayerCrouching = false;
+
+
+    public bool isWalking = false;
+
     public bool isRunning = false;
     public bool isStaminaEmpty = false;
     private float timeSinceLastRun = 0f;
@@ -93,7 +117,23 @@ public class PlayerMovement : MonoBehaviour
             noiseCollider.radius = baseNoiseRadius;
             noiseCollider.isTrigger = true;
         }
+
+        playerAudioSource = GetComponent<AudioSource>();
+        //damageSoundClip = GetComponent<AudioClip>();
+
+        //walkingSoundClip = GetComponent<AudioClip>();
+
+
+
+
+
+        lastPosition = transform.position;
+
+
     }
+
+    
+
 
     private void Update()
     {
@@ -106,6 +146,36 @@ public class PlayerMovement : MonoBehaviour
         }
 
         UpdateNoiseRadius(currentSpeed);
+
+
+        #region isWalkingBool
+
+
+        if (rb.linearVelocity != Vector3.zero && !isRunning)
+        {
+            if (!isWalking) // solo entra la primera vez
+            {
+                Debug.Log("Player started walking");
+                isWalking = true;
+
+                playerAudioSource.clip = walkingSoundClip;
+                playerAudioSource.loop = true; // que se repita mientras camina
+                playerAudioSource.Play();
+            }
+        }
+        else
+        {
+            if (isWalking) // solo entra la primera vez que deja de caminar
+            {
+                Debug.Log("Player stopped walking");
+                isWalking = false;
+
+                playerAudioSource.Stop();
+            }
+        }
+
+        #endregion
+
     }
 
     // --- SISTEMA DE STAMINA ---
@@ -196,6 +266,11 @@ public class PlayerMovement : MonoBehaviour
         {
             ApplyKnockback(attackerPosition);
             ApplySlowEffect();
+
+            //Efecto de sonido daño:
+            playerAudioSource.clip = damageSoundClip;
+            playerAudioSource.Play();
+
         }
     }
 
@@ -256,6 +331,7 @@ public class PlayerMovement : MonoBehaviour
         currentSpeed = movementSpeed;
         isRunning = false;
 
+
         // Correr: Shift + No Slow + Estamina disponible
         if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
         {
@@ -263,11 +339,38 @@ public class PlayerMovement : MonoBehaviour
             {
                 currentSpeed = runSpeed;
                 isRunning = true;
+                isWalking = false;
+
+
+                if (!playerAudioSource.isPlaying || playerAudioSource.clip != runningSoundClip)
+                {
+                    playerAudioSource.clip = runningSoundClip;
+                    playerAudioSource.loop = true;   // que se repita mientras corre
+                    playerAudioSource.Play();
+                }
             }
         }
+        else
+        {
+            // Cuando deja de correr, detener el sonido
+            if (isRunning)
+            {
+                isRunning = false;
+                playerAudioSource.Stop();
+            }
+        }
+        
 
-        // Si estamina vacía, forzar caminar
-        if (isStaminaEmpty)
+        if (transform.position != lastPosition)
+        {
+            Debug.Log("Player is moving!");
+
+
+
+        }
+
+            // Si estamina vacía, forzar caminar
+            if (isStaminaEmpty)
         {
             currentSpeed = movementSpeed;
             isRunning = false;
