@@ -20087,7 +20087,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemTemplate: {fileID: 11400000, guid: 0fda8e41f32980d498c877aa02413628, type: 2}
-  objectToActivate: {fileID: 658180098}
 --- !u!1 &658613152
 GameObject:
   m_ObjectHideFlags: 0
@@ -49568,7 +49567,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemTemplate: {fileID: 11400000, guid: e98cb86e906abe14189a2f5364930230, type: 2}
-  objectToActivate: {fileID: 0}
 --- !u!1001 &1802639273
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55594,9 +55592,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c462fcb2a0835874fb1565ccf01a8497, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  requiresKeyCard: 1
+  requiredKeyCardID: Principal
+  delayBeforeClose: 3
   anim: {fileID: 0}
   openSound: {fileID: 0}
-  requiredKeyID: KeyCard_Principal
+  closeSound: {fileID: 0}
   victoryPanel: {fileID: 417536287}
   escapeText: {fileID: 413165741}
   victoryText: {fileID: 1593322820}
