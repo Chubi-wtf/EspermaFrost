@@ -3,27 +3,28 @@ using System.Collections;
 
 public class ScriptCasilleroProvisional : MonoBehaviour
 {
-    [Header("Referencias")]
+    [Header("Referencias Globales")]
     public Transform playerTransform;
     public GameObject playerBody;
-    public Camera playerCamera;        // Cámara principal del jugador
-    public Camera lockerCamera;        // Nueva cámara del locker
+    public Camera playerCamera;
 
-    [Header("Configuración del Casillero")]
-    public Transform cameraHidePosition;
+    [Header("Referencias Internas (Auto-detectables)")]
+    public Camera lockerCamera;        // La cámara dentro DE ESTE casillero
+    public Transform cameraHidePosition; // Dónde se pondrá la cámara (opcional)
+
+    [Header("Configuración")]
     public KeyCode interactionKey = KeyCode.E;
+    public float interactionDistance = 3.0f;
+    public LayerMask interactionLayer;
 
     [Header("Estado")]
     public bool isHidden = false;
-    public bool canInteract = false;
 
-    // Tiempo de transición para suavizar el movimiento
-    private float transitionTime = 0.5f;
     private PlayerMovement playerMovement;
 
     void Start()
     {
-        // Buscar automáticamente las referencias si no están asignadas
+        // 1. AUTO-CONFIGURACIÓN DEL JUGADOR
         if (playerTransform == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -34,41 +35,64 @@ public class ScriptCasilleroProvisional : MonoBehaviour
                 playerMovement = player.GetComponent<PlayerMovement>();
             }
         }
+        if (playerCamera == null) playerCamera = Camera.main;
 
-        if (playerCamera == null)
+        // 2. AUTO-CONFIGURACIÓN INTERNA (Crucial para Prefabs)
+        // Busca la cámara que está DENTRO de este casillero específico
+        if (lockerCamera == null)
         {
-            // Buscar la cámara principal (que debe tener el tag MainCamera)
-            playerCamera = Camera.main;
+            lockerCamera = GetComponentInChildren<Camera>(true); // 'true' para buscar aunque esté desactivada
         }
 
-        // Asegurarse de que la cámara del locker esté desactivada al inicio
-        if (lockerCamera != null)
+        // Si no se asignó posición de cámara, usa la posición de la cámara encontrada o el propio casillero
+        if (cameraHidePosition == null)
         {
-            lockerCamera.gameObject.SetActive(false);
+            if (lockerCamera != null) cameraHidePosition = lockerCamera.transform;
+            else cameraHidePosition = this.transform;
         }
+
+        // Asegurarse de que la cámara del locker empiece apagada
+        if (lockerCamera != null) lockerCamera.gameObject.SetActive(false);
     }
 
     void Update()
     {
-        // Verificar si el jugador puede interactuar y presiona la tecla
-        if (canInteract && Input.GetKeyDown(interactionKey))
+        // Lógica para SALIR (Solo si este es el casillero donde estás escondido)
+        if (isHidden)
         {
-            if (!isHidden)
+            if (Input.GetKeyDown(interactionKey) || Input.GetKeyDown(KeyCode.Space))
             {
-                // Esconderse en el casillero
-                StartCoroutine(HideInLocker());
-            }
-            else
-            {
-                // Salir del casillero
                 StartCoroutine(ExitLocker());
             }
+            return;
         }
 
-        // Salir rápido si está escondido (opcional)
-        if (isHidden && Input.GetKeyDown(KeyCode.Space))
+        // Lógica para ENTRAR (Se ejecuta en todos los casilleros, pero filtra por raycast)
+        if (Input.GetKeyDown(interactionKey))
         {
-            StartCoroutine(ExitLocker());
+            CheckForInteraction();
+        }
+    }
+
+    void CheckForInteraction()
+    {
+        if (playerCamera == null) return;
+
+        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        RaycastHit hit;
+
+        // Lanzamos el rayo
+        if (Physics.Raycast(ray, out hit, interactionDistance, interactionLayer))
+        {
+            // CORRECCIÓN IMPORTANTE: 
+            // Buscamos si el objeto golpeado tiene ESTE script, o si es un hijo de este script
+            ScriptCasilleroProvisional casilleroGolpeado = hit.collider.GetComponentInParent<ScriptCasilleroProvisional>();
+
+            // Verificamos si el casillero golpeado SOY YO (this)
+            if (casilleroGolpeado == this)
+            {
+                StartCoroutine(HideInLocker());
+            }
         }
     }
 
@@ -76,75 +100,39 @@ public class ScriptCasilleroProvisional : MonoBehaviour
     {
         isHidden = true;
 
-        // Desactivar el cuerpo del jugador y movimiento
-        if (playerBody != null)
-            playerBody.SetActive(false);
+        // Desactivar jugador
+        if (playerBody != null) playerBody.SetActive(false);
+        if (playerMovement != null) playerMovement.enabled = false;
+        if (playerCamera != null) playerCamera.gameObject.SetActive(false);
 
-        if (playerMovement != null)
-            playerMovement.enabled = false;
-
-        // Cambio de cámaras
-        if (playerCamera != null)
-            playerCamera.gameObject.SetActive(false);
-
+        // Activar cámara de ESTE casillero
         if (lockerCamera != null)
         {
             lockerCamera.gameObject.SetActive(true);
-            // Posicionar la cámara del locker en la posición correcta
-            lockerCamera.transform.position = cameraHidePosition.position;
-            lockerCamera.transform.rotation = cameraHidePosition.rotation;
+            // Opcional: Forzar posición si es necesario
+            // lockerCamera.transform.position = cameraHidePosition.position;
+            // lockerCamera.transform.rotation = cameraHidePosition.rotation;
+        }
+        else
+        {
+            Debug.LogError("¡Falta la cámara dentro del prefab del casillero!");
         }
 
-        Debug.Log("Te has escondido en el casillero. Presiona E o Space para salir.");
+        Debug.Log("Escondido en: " + gameObject.name);
         yield return null;
     }
 
     IEnumerator ExitLocker()
     {
-        // Cambio de cámaras
-        if (lockerCamera != null)
-            lockerCamera.gameObject.SetActive(false);
+        // Desactivar cámara de este casillero
+        if (lockerCamera != null) lockerCamera.gameObject.SetActive(false);
 
-        if (playerCamera != null)
-            playerCamera.gameObject.SetActive(true);
-
-        // Reactivar el cuerpo del jugador y movimiento
-        if (playerBody != null)
-            playerBody.SetActive(true);
-
-        if (playerMovement != null)
-            playerMovement.enabled = true;
+        // Reactivar jugador
+        if (playerCamera != null) playerCamera.gameObject.SetActive(true);
+        if (playerBody != null) playerBody.SetActive(true);
+        if (playerMovement != null) playerMovement.enabled = true;
 
         isHidden = false;
-
-        Debug.Log("Has salido del casillero.");
         yield return null;
-    }
-
-    // Detectar cuando el jugador está cerca del casillero
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            canInteract = true;
-            Debug.Log("Presiona E para esconderte en el casillero");
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            canInteract = false;
-        }
-    }
-
-    // Método para forzar la salida (útil para eventos externos)
-    public void ForceExit()
-    {
-        if (isHidden)
-        {
-            StartCoroutine(ExitLocker());
-        }
     }
 }

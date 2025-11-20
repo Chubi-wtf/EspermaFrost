@@ -30,6 +30,7 @@ public class PlayerMovement : MonoBehaviour
     private float originalMovementSpeed;    // Para guardar la velocidad base original
     private float originalRunSpeed;         // Para guardar la velocidad de correr original
     public bool isSlowed = false;          // Evita aplicar el slow varias veces
+    public float crouchNoiseRadius = 2f;
 
     [Header("VARIABLES DE RUIDO")]
     public SphereCollider noiseCollider;
@@ -63,12 +64,19 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody rb;
     CapsuleCollider cc;
+    public static PlayerMovement Instance; // Esta es la variable que el enemigo está buscando
 
     private void Awake()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        cam = GetComponentInChildren<Camera>().transform;
-        rb = GetComponent<Rigidbody>();
+        // Esto asegura que "Instance" sea ESTE jugador especifico
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject); // Borra duplicados si cambias de escena y hay otro player
+        }
     }
 
     private void Start()
@@ -152,7 +160,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (noiseCollider == null) return;
 
-        if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+        // 1. Si el jugador no se mueve (input cero), ruido base (mínimo)
+        if (Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0)
         {
             if (currentSpeed == runSpeed)
             {
@@ -164,10 +173,25 @@ public class PlayerMovement : MonoBehaviour
                 noiseCollider.radius = walkNoiseRadius;
                 Debug.Log("Generando ruido de caminar");
             }
+            noiseCollider.radius = baseNoiseRadius;
+            return;
+        }
+
+        // 2. Si se mueve...
+        if (isPlayerCrouching)
+        {
+            // Agachado: ruido mínimo aunque se mueva
+            noiseCollider.radius = crouchNoiseRadius;
+        }
+        else if (currentSpeed == runSpeed)
+        {
+            // Corriendo: ruido máximo
+            noiseCollider.radius = runNoiseRadius;
         }
         else
         {
-            noiseCollider.radius = baseNoiseRadius;
+            // Caminando: ruido medio
+            noiseCollider.radius = walkNoiseRadius;
         }
     }
     #endregion
