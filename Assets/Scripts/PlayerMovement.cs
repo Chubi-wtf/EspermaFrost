@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public static PlayerMovement Instance;
+
     [Header("VARIABLES DE VIDA")]
     public float maxHealth = 100f;
     public float currentHealth;
@@ -13,98 +15,106 @@ public class PlayerMovement : MonoBehaviour
     public float staminaDrainRate = 15f;
     public float staminaRegenRate = 10f;
     public float regenDelay = 1.5f;
-    public float runCooldown = 2f; 
+    public float runCooldown = 2f;
 
     [Header("CONFIGURACIÓN DE KNOCKBACK")]
     public float knockbackForce = 15f;
     public float knockbackDuration = 0.15f;
 
     [Header("VARIABLES DE MOVIMIENTO")]
-    public float mouseSensitivity;
+    public bool canMove = true; // Control para bloquear movimiento (Script 2)
+    public float mouseSensitivity = 100f;
     public float movementSpeed = 5f;
     public float runSpeed = 10f;
 
     [Header("VARIABLES EFECTO DE REDUCCIÓN DE VELOCIDAD")]
-    public float slowDuration = 2f;      // Duración en segundos del efecto
-    public float slowMultiplier = 0.5f;    // Multiplicador de velocidad (0.5 = 50% de velocidad)
-    private float originalMovementSpeed;    // Para guardar la velocidad base original
-    private float originalRunSpeed;         // Para guardar la velocidad de correr original
-    public bool isSlowed = false;          // Evita aplicar el slow varias veces
-    public float crouchNoiseRadius = 2f;
+    public float slowDuration = 2f;
+    public float slowMultiplier = 0.5f;
+    private float originalMovementSpeed;
+    private float originalRunSpeed;
+    public bool isSlowed = false;
 
     [Header("VARIABLES DE RUIDO")]
     public SphereCollider noiseCollider;
-    public float baseNoiseRadius, walkNoiseRadius, runNoiseRadius;
+    public float baseNoiseRadius = 5f;
+    public float walkNoiseRadius = 15f;
+    public float runNoiseRadius = 30f;
+    public float crouchNoiseRadius = 2f;
 
     [Header("DEATH COLLIDER")]
     public CapsuleCollider DeathCollision;
-    [Header("Configuración de Agacharse")]
+
+    [Header("Configuración de Agacharse (Suave)")]
     public float crouchHeight = 1f;
     public float crouchSpeedMultiplier = 0.5f;
     public float crouchTransitionSpeed = 5f;
-
     private float standingHeight;
     private Vector3 standingCenter;
     private bool isTransitioningCrouch = false;
 
-    #region PRIVATES BOOLS
+    #region PRIVATES BOOLS & STATE
     [Header("ESTADO DEL JUGADOR")]
     public bool isPlayerCrouching = false;
-    public bool isRunning = false;         // Cambiado a public
-    public bool isStaminaEmpty = false;    // Cambiado a public
+    public bool isRunning = false;
+    public bool isStaminaEmpty = false;
+
     private float timeSinceLastRun = 0f;
+    private bool isAdrenalineActive = false; // (Script 2)
+    private Coroutine adrenalineCoroutine;   // (Script 2)
 
     private Transform cam;
     private float horizontalRotation, verticalRotation;
-
-    private float keyboardX;
-    private float keyboardY;
+    private float keyboardX, keyboardY;
     private float currentSpeed;
     #endregion
 
     Rigidbody rb;
     CapsuleCollider cc;
-    public static PlayerMovement Instance; // Esta es la variable que el enemigo está buscando
 
     private void Awake()
     {
-        // Esto asegura que "Instance" sea ESTE jugador especifico
+        // Singleton Pattern
         if (Instance == null)
         {
             Instance = this;
         }
         else
         {
-            Destroy(gameObject); // Borra duplicados si cambias de escena y hay otro player
+            Destroy(gameObject);
+            return;
         }
     }
 
     private void Start()
     {
+        rb = GetComponent<Rigidbody>();
         cc = GetComponent<CapsuleCollider>();
-        currentHealth = maxHealth;
-        currentStamina = maxStamina; // <-- Inicialización de Estamina
 
+        // --- BÚSQUEDA SEGURA DE CÁMARA ---
+        Camera foundCam = GetComponentInChildren<Camera>();
+        if (foundCam != null) cam = foundCam.transform;
+        else if (Camera.main != null) cam = Camera.main.transform;
+        else Debug.LogError("¡NO SE ENCONTRÓ NINGUNA CÁMARA!");
+
+        // Inicialización de valores
+        currentHealth = maxHealth;
+        currentStamina = maxStamina;
         originalMovementSpeed = movementSpeed;
         originalRunSpeed = runSpeed;
 
-
-        if (noiseCollider != null)
-        {
-            noiseCollider.radius = baseNoiseRadius;
-            noiseCollider.isTrigger = true;
-        }
-
-        cc = GetComponent<CapsuleCollider>();
         standingHeight = cc.height;
         standingCenter = cc.center;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        // --- CORRECCIÓN DEL RUIDO (Script 1 - Muy útil) ---
+        SetupNoiseCollider();
     }
 
     private void Update()
     {
         Movement();
-
-        // LÓGICA DE STAMINA AÑADIDA
         HandleStamina();
 
         if (Input.GetKeyDown(KeyCode.LeftControl))
@@ -115,192 +125,40 @@ public class PlayerMovement : MonoBehaviour
         UpdateNoiseRadius(currentSpeed);
     }
 
-    // NUEVO MÉTODO PARA MANEJAR EL CONSUMO Y REGENERACIÓN DE STAMINA
-    private void HandleStamina()
+    private void FixedUpdate()
     {
-        if (isRunning)
+        if (rb == null) return;
+
+        Vector3 moveInput = new Vector3(keyboardX, 0, keyboardY);
+
+        if (moveInput.magnitude > 1)
         {
-            // CONSUMO: Si está corriendo, drena estamina
-            currentStamina -= staminaDrainRate * Time.deltaTime;
-            currentStamina = Mathf.Max(currentStamina, 0f);
-
-            timeSinceLastRun = 0f;
-
-            if (currentStamina <= 0f)
-            {
-                isStaminaEmpty = true;
-                isRunning = false;
-                timeSinceLastRun = -runCooldown; // <-- NUEVO: Inicia el cooldown
-                Debug.Log("¡Estamina agotada! Cooldown activado.");
-            }
+            moveInput.Normalize();
         }
-        else if (currentStamina < maxStamina)
-        {
-            // REGENERACIÓN
-            timeSinceLastRun += Time.deltaTime;
 
-            // NUEVO: Solo regenera si no está en cooldown
-            if (timeSinceLastRun >= Mathf.Max(regenDelay, 0f))
-            {
-                currentStamina += staminaRegenRate * Time.deltaTime;
-                currentStamina = Mathf.Min(currentStamina, maxStamina);
+        Vector3 targetMove = transform.TransformDirection(moveInput) * currentSpeed;
 
-                if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
-                {
-                    isStaminaEmpty = false;
-                }
-            }
-        }
+        // NOTA: rb.linearVelocity es para Unity 6. 
+        // Si usas versiones anteriores (2022 o menos), cambia por: rb.velocity
+        rb.linearVelocity = new Vector3(targetMove.x, rb.linearVelocity.y, targetMove.z);
     }
 
-
-    #region RADIO DE ESCUCHA
-
-    private void UpdateNoiseRadius(float currentSpeed)
-    {
-        if (noiseCollider == null) return;
-
-        // 1. Si el jugador no se mueve (input cero), ruido base (mínimo)
-        if (Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0)
-        {
-            if (currentSpeed == runSpeed)
-            {
-                noiseCollider.radius = runNoiseRadius;
-                Debug.Log("Generando ruido de correr");
-            }
-            else
-            {
-                noiseCollider.radius = walkNoiseRadius;
-                Debug.Log("Generando ruido de caminar");
-            }
-            noiseCollider.radius = baseNoiseRadius;
-            return;
-        }
-
-        // 2. Si se mueve...
-        if (isPlayerCrouching)
-        {
-            // Agachado: ruido mínimo aunque se mueva
-            noiseCollider.radius = crouchNoiseRadius;
-        }
-        else if (currentSpeed == runSpeed)
-        {
-            // Corriendo: ruido máximo
-            noiseCollider.radius = runNoiseRadius;
-        }
-        else
-        {
-            // Caminando: ruido medio
-            noiseCollider.radius = walkNoiseRadius;
-        }
-    }
-    #endregion
-
-    #region DAÑO Y COLLIDERS CON ENEMIGO
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            // Añadir sonidos y efecto de cámara
-        }
-    }
-
-    // ** MODIFICACIÓN DEL MÉTODO TAKE DAMAGE **
-    // Ahora acepta la posición del atacante (Enemy)
-    public void TakeDamage(float damageAmount, Vector3 attackerPosition)
-    {
-        currentHealth -= damageAmount;
-        currentHealth = Mathf.Max(currentHealth, 0f);
-
-        Debug.Log("Vida actual: " + currentHealth);
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
-        else
-        {
-            ApplyKnockback(attackerPosition); // <-- Llamada al Knockback
-            ApplySlowEffect();
-        }
-    }
-
-    private void ApplyKnockback(Vector3 attackerPosition)
-    {
-        Vector3 knockbackDirection = transform.position - attackerPosition;
-        knockbackDirection.y = 0;
-        knockbackDirection.Normalize();
-
-        StopCoroutine(KnockbackRoutine(knockbackDirection));
-        StartCoroutine(KnockbackRoutine(knockbackDirection));
-    }
-
-    private IEnumerator KnockbackRoutine(Vector3 direction)
-    {
-        float startTime = Time.time;
-
-        Vector3 continuousForce = direction * knockbackForce;
-
-        while (Time.time < startTime + knockbackDuration)
-        {
-            rb.AddForce(continuousForce, ForceMode.Force);
-
-            yield return null;
-        }
-    }
-
-    public void ApplySlowEffect()
-    {
-        // Detiene cualquier efecto de lentitud anterior para reiniciar la duración
-        if (isSlowed)
-        {
-            StopCoroutine("SlowDown");
-        }
-        // Inicia la corrutina
-        StartCoroutine("SlowDown");
-    }
-
-    IEnumerator SlowDown()
-    {
-        isSlowed = true;
-
-        // Aplicar la reducción de velocidad
-        movementSpeed = originalMovementSpeed * slowMultiplier;
-        runSpeed = originalRunSpeed * slowMultiplier;
-
-        // Esperar la duración especificada
-        yield return new WaitForSeconds(slowDuration);
-
-        // Restaurar la velocidad original
-        movementSpeed = originalMovementSpeed;
-        runSpeed = originalRunSpeed;
-        isSlowed = false;
-    }
-
-    private void Die()
-    {
-        Debug.Log("¡El jugador ha muerto!");
-
-        this.enabled = false;
-        rb.linearVelocity = Vector3.zero;
-    }
-    #endregion
-
-    #region MOVIMIENTO
+    #region MOVIMIENTO Y CÁMARA
     private void Movement()
     {
-        // Movimiento base (caminar)
+        if (!canMove) return; // Bloqueo de movimiento (Script 2)
+
+        // 1. Definir velocidad base
         float targetSpeed = movementSpeed;
         isRunning = false;
 
-        // Aplicar multiplicador de velocidad si está agachado
+        // 2. Modificadores de velocidad
         if (isPlayerCrouching)
         {
             targetSpeed *= crouchSpeedMultiplier;
         }
-        // Comprobación para correr (solo si no está agachado)
-        else if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
+        // Correr: Shift + No Slow + Estamina OK (o Adrenalina)
+        else if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && (!isStaminaEmpty || isAdrenalineActive))
         {
             if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
             {
@@ -309,8 +167,8 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Si el jugador intenta correr pero ya tiene la estamina vacía, forzamos a caminar.
-        if (isStaminaEmpty)
+        // Si se acabó la estamina y no hay adrenalina, forzar caminar
+        if (isStaminaEmpty && !isAdrenalineActive)
         {
             targetSpeed = movementSpeed;
             isRunning = false;
@@ -318,21 +176,27 @@ public class PlayerMovement : MonoBehaviour
 
         currentSpeed = targetSpeed;
         keyboardX = Input.GetAxis("Horizontal");
-        keyboardY = Input.GetAxis("Vertical");  
+        keyboardY = Input.GetAxis("Vertical");
 
+        // Rotación de Cámara
         float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * mouseSensitivity;
 
         horizontalRotation += mouseX;
         verticalRotation -= mouseY;
 
+        // Clamp -90 a 90 es estándar para FPS (Script 1). Script 2 tenía 60.
         verticalRotation = Mathf.Clamp(verticalRotation, -90, 90);
 
         transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, horizontalRotation, transform.localEulerAngles.z);
-        cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
+
+        if (cam != null)
+        {
+            cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
+        }
     }
 
-    #region cambios Chubi
+    // Usamos la versión suave (Script 1) porque se siente mejor que el "snap" instantáneo
     private void Crouch()
     {
         if (isTransitioningCrouch) return;
@@ -343,7 +207,7 @@ public class PlayerMovement : MonoBehaviour
         StartCoroutine(TransitionCrouch());
     }
 
-    private System.Collections.IEnumerator TransitionCrouch()
+    private IEnumerator TransitionCrouch()
     {
         float targetHeight = isPlayerCrouching ? crouchHeight : standingHeight;
         Vector3 targetCenter = isPlayerCrouching ? new Vector3(0f, -0.5f, 0f) : standingCenter;
@@ -361,54 +225,229 @@ public class PlayerMovement : MonoBehaviour
             yield return null;
         }
 
+        // Asegurar valores finales
+        cc.height = targetHeight;
+        cc.center = targetCenter;
+
         isTransitioningCrouch = false;
-
-        // Notificar al controlador de animaciones
-        PlayerAnimationController animController = GetComponent<PlayerAnimationController>();
-        if (animController != null)
-        {
-            animController.SetCrouchingState(isPlayerCrouching);
-        }
     }
     #endregion
 
-    private void FixedUpdate()
+    #region STAMINA & ADRENALINA
+    private void HandleStamina()
     {
-        Vector3 moveInput = new Vector3(keyboardX, 0, keyboardY);
-
-        if (moveInput.magnitude > 1)
+        // Lógica de Adrenalina (Script 2)
+        if (isAdrenalineActive)
         {
-            moveInput.Normalize();
+            currentStamina = maxStamina;
+            isStaminaEmpty = false;
+            return;
         }
 
-        Vector3 targetMove = transform.TransformDirection(moveInput) * currentSpeed;
+        if (isRunning)
+        {
+            // CONSUMO
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+            currentStamina = Mathf.Max(currentStamina, 0f);
+            timeSinceLastRun = 0f;
 
-        rb.linearVelocity = new Vector3(targetMove.x, rb.linearVelocity.y, targetMove.z);
+            if (currentStamina <= 0f)
+            {
+                isStaminaEmpty = true;
+                isRunning = false;
+                timeSinceLastRun = -runCooldown; // Inicia el cooldown
+                // Debug.Log("¡Estamina agotada!");
+            }
+        }
+        else if (currentStamina < maxStamina)
+        {
+            // REGENERACIÓN
+            timeSinceLastRun += Time.deltaTime;
+
+            if (timeSinceLastRun >= Mathf.Max(regenDelay, 0f))
+            {
+                currentStamina += staminaRegenRate * Time.deltaTime;
+                currentStamina = Mathf.Min(currentStamina, maxStamina);
+
+                if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
+                {
+                    isStaminaEmpty = false;
+                }
+            }
+        }
+    }
+
+    public void ActivateAdrenaline(float duration)
+    {
+        if (adrenalineCoroutine != null)
+        {
+            StopCoroutine(adrenalineCoroutine);
+        }
+        adrenalineCoroutine = StartCoroutine(AdrenalineRoutine(duration));
+    }
+
+    private IEnumerator AdrenalineRoutine(float duration)
+    {
+        isAdrenalineActive = true;
+        isStaminaEmpty = false; // Reactiva inmediatamente si estaba cansado
+        Debug.Log($"[Adrenalina] Activada por {duration} segundos.");
+
+        yield return new WaitForSeconds(duration);
+
+        isAdrenalineActive = false;
+        Debug.Log("[Adrenalina] Efecto terminado.");
     }
     #endregion
 
-    #region HEALTH & STAMINA
-    public void Heal(float amount)
+    #region SALUD & DAÑO
+    // Modificado para devolver float (Script 2) pero mantener logs detallados (Script 1)
+    public float Heal(float amount)
     {
+        float healthBeforeHeal = currentHealth;
         if (currentHealth < maxHealth)
         {
             currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-            Debug.Log($"[Botiquín] Curado {amount} de vida. Salud actual: {currentHealth}");
+            float healed = currentHealth - healthBeforeHeal;
+            Debug.Log($"[Botiquín] Curado {healed}. Salud: {currentHealth}");
+            return healed;
         }
+        return 0f;
     }
 
-    // Método para agregar estamina (ej: con un consumible, opcional)
     public void AddStamina(float amount)
     {
         if (currentStamina < maxStamina)
         {
             currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
-            isStaminaEmpty = false; // Asegura que pueda correr si agrega estamina
-            Debug.Log($"[Consumible] Recargado {amount} de estamina. Estamina actual: {currentStamina}");
+            isStaminaEmpty = false;
+            Debug.Log($"[Consumible] Recargado {amount} estamina.");
+        }
+    }
+
+    public void TakeDamage(float damageAmount, Vector3 attackerPosition)
+    {
+        currentHealth -= damageAmount;
+        currentHealth = Mathf.Max(currentHealth, 0f);
+
+        Debug.Log("Vida actual: " + currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+        else
+        {
+            ApplyKnockback(attackerPosition);
+            ApplySlowEffect();
+        }
+    }
+
+    private void ApplyKnockback(Vector3 attackerPosition)
+    {
+        Vector3 knockbackDirection = transform.position - attackerPosition;
+        knockbackDirection.y = 0;
+        knockbackDirection.Normalize();
+
+        StopCoroutine("KnockbackRoutine");
+        StartCoroutine(KnockbackRoutine(knockbackDirection));
+    }
+
+    private IEnumerator KnockbackRoutine(Vector3 direction)
+    {
+        float startTime = Time.time;
+        Vector3 continuousForce = direction * knockbackForce;
+
+        while (Time.time < startTime + knockbackDuration)
+        {
+            rb.AddForce(continuousForce, ForceMode.Force);
+            yield return null;
+        }
+    }
+
+    public void ApplySlowEffect()
+    {
+        if (isSlowed) StopCoroutine("SlowDown");
+        StartCoroutine("SlowDown");
+    }
+
+    IEnumerator SlowDown()
+    {
+        isSlowed = true;
+        movementSpeed = originalMovementSpeed * slowMultiplier;
+        runSpeed = originalRunSpeed * slowMultiplier;
+
+        yield return new WaitForSeconds(slowDuration);
+
+        movementSpeed = originalMovementSpeed;
+        runSpeed = originalRunSpeed;
+        isSlowed = false;
+    }
+
+    private void Die()
+    {
+        Debug.Log("¡El jugador ha muerto!");
+        this.enabled = false;
+        rb.linearVelocity = Vector3.zero;
+        // Aquí puedes disparar eventos de UI de Game Over
+    }
+    #endregion
+
+    #region SISTEMA DE RUIDO
+    private void SetupNoiseCollider()
+    {
+        if (noiseCollider == null)
+        {
+            SphereCollider[] colliders = GetComponents<SphereCollider>();
+            foreach (var col in colliders)
+            {
+                if (col.isTrigger)
+                {
+                    noiseCollider = col;
+                    break;
+                }
+            }
+            if (noiseCollider == null) Debug.LogWarning("Falta NoiseCollider en el Player.");
+        }
+
+        if (noiseCollider != null)
+        {
+            noiseCollider.isTrigger = true;
+            noiseCollider.radius = baseNoiseRadius;
+        }
+    }
+
+    private void UpdateNoiseRadius(float currentSpeed)
+    {
+        if (noiseCollider == null) return;
+
+        // Si no hay input de movimiento
+        if (Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0)
+        {
+            noiseCollider.radius = baseNoiseRadius;
+            return;
+        }
+
+        // Si se mueve
+        if (isPlayerCrouching)
+        {
+            noiseCollider.radius = crouchNoiseRadius;
+        }
+        else if (currentSpeed == runSpeed)
+        {
+            noiseCollider.radius = runNoiseRadius;
+        }
+        else
+        {
+            noiseCollider.radius = walkNoiseRadius;
         }
     }
     #endregion
 
-
-    
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            // Lógica de impacto físico con enemigo (opcional)
+        }
+    }
 }
