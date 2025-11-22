@@ -4,8 +4,9 @@ using UnityEngine.UI;
 public class UI_ItemsReactionScript : MonoBehaviour
 { 
     [Header("REFERENCIAS UI")]
-    public Slider adrenalineSlider;
+    public Slider adrenalineSliderLeft, adrenalineSliderRight;
     public GameObject adrenalineMeterPanel;
+
 
     [Header("CONFIGURACIÓN")]
     public float fadeInSpeed = 2f;
@@ -41,10 +42,16 @@ public class UI_ItemsReactionScript : MonoBehaviour
             adrenalineMeterPanel.SetActive(true);
         }
 
-        if (adrenalineSlider != null)
+        if (adrenalineSliderLeft != null)
         {
-            adrenalineSlider.maxValue = playerMovement.maxStamina;
-            adrenalineSlider.value = playerMovement.currentStamina;
+            adrenalineSliderLeft.maxValue = playerMovement.maxStamina;
+            adrenalineSliderLeft.value = playerMovement.currentStamina;
+        }
+
+        if (adrenalineSliderRight != null)
+        {
+            adrenalineSliderRight.maxValue = playerMovement.maxStamina;
+            adrenalineSliderRight.value = playerMovement.currentStamina;
         }
 
         // Ocultar inicialmente
@@ -56,10 +63,11 @@ public class UI_ItemsReactionScript : MonoBehaviour
         if (playerMovement == null) return;
 
         // Actualizar valor del slider con la estamina actual
-        if (adrenalineSlider != null)
-        {
-            adrenalineSlider.value = playerMovement.currentStamina;
-        }
+        if (adrenalineSliderLeft != null)
+            adrenalineSliderLeft.value = playerMovement.currentStamina;
+
+        if (adrenalineSliderRight != null)
+            adrenalineSliderRight.value = playerMovement.currentStamina;
 
         // Mostrar u ocultar el medidor según el estado de carrera
         HandleMeterVisibility();

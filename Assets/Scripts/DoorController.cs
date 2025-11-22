@@ -1,124 +1,150 @@
 using UnityEngine;
-using TMPro;
+using System.Collections; // Para las corrutinas
+using TMPro;              // Para los textos de la UI
+using UnityEngine.SceneManagement; // Para reiniciar el nivel
 
 [RequireComponent(typeof(AudioSource))]
 public class DoorController : MonoBehaviour
 {
-    [Header("Componentes")]
+    [Header("--- Configuración General ---")]
+    public bool requiresKeyCard = false;
+    public string requiredKeyCardID = "DEFAULT_ID";
+
+    [Tooltip("Tiempo antes de cerrarse sola. Si es la puerta de victoria, esto se ignora.")]
+    public float delayBeforeClose = 3.0f;
+
+    [Header("--- Componentes de la Puerta ---")]
     public Animator anim;
     public AudioClip openSound;
+    public AudioClip closeSound;
 
-    [Header("Panel de Victoria")]
+    [Header("--- Configuración de Victoria (Opcional) ---")]
+    [Tooltip("Arrastra aquí el panel de victoria SOLO si esta es la puerta final.")]
     public GameObject victoryPanel;
     public TextMeshProUGUI escapeText;
     public TextMeshProUGUI victoryText;
 
+    // Variables internas
     private AudioSource audioSource;
     private bool isOpen = false;
-    private bool playerInRange = false;
+    private bool isLocked = true;
 
     void Awake()
     {
-        // Busca el Animator (si no está asignado)
-        if (anim == null)
-        {
-            anim = GetComponentInChildren<Animator>();
-        }
+        // Inicialización de componentes
+        if (anim == null) anim = GetComponentInChildren<Animator>();
 
         audioSource = GetComponent<AudioSource>();
-        audioSource.playOnAwake = false;
+        if (audioSource != null) audioSource.playOnAwake = false;
 
-        // Ocultar panel al inicio
-        if (victoryPanel != null)
-            victoryPanel.SetActive(false);
+        // Configuración inicial de bloqueo
+        isLocked = requiresKeyCard;
+
+        // Asegurarnos que el panel de victoria empiece apagado
+        if (victoryPanel != null) victoryPanel.SetActive(false);
     }
 
-    void Update()
+    // --- LÓGICA DE INTERACCIÓN (Del Script 1) ---
+    public bool InteractDoor(string keyCardID)
     {
-        // Si el jugador está en rango y toca la puerta, se activa
-        if (playerInRange && !isOpen)
+        if (isOpen) return false; // Ya está abierta o abriéndose
+
+        // 1. Comprobación de Bloqueo
+        if (isLocked)
         {
-            OpenDoor();
+            if (requiresKeyCard && keyCardID == requiredKeyCardID)
+            {
+                isLocked = false; // Desbloqueo permanente
+                Debug.Log($"Puerta desbloqueada con KeyCard: {requiredKeyCardID}");
+                // Opcional: Sonido de "Desbloqueo" aquí
+            }
+            else
+            {
+                Debug.Log("Acceso denegado. Falta tarjeta correcta.");
+                // Opcional: Sonido de "Error" aquí
+                return false;
+            }
         }
+
+        // 2. Iniciar secuencia de apertura
+        StartCoroutine(OpenRoutine());
+        return true;
     }
 
-    // Esta es la función que se llama cuando el jugador toca la puerta
-    public void OpenDoor()
+    // --- RUTINA PRINCIPAL (Fusionada) ---
+    private IEnumerator OpenRoutine()
     {
-        // Si ya está abierta, no hacemos nada
-        if (isOpen) return;
-
-        // Marcamos como abierta
         isOpen = true;
 
-        // Activamos la animación
-        if (anim != null)
-        {
-            anim.SetTrigger("Open");
-        }
+        // 1. Sonido
+        if (openSound != null && audioSource != null) audioSource.PlayOneShot(openSound);
 
-        // Reproducimos el sonido
-        if (openSound != null)
-        {
-            audioSource.PlayOneShot(openSound);
-        }
+        // 2. Animación
+        if (anim != null) anim.SetTrigger("Open");
 
-        // Mostrar panel de victoria después de un pequeño delay
-        Invoke("ShowVictoryPanel", 0f);
+        // 3. Desactivar Collider (Para poder pasar)
+        Collider doorCollider = GetComponent<Collider>();
+        if (doorCollider != null) doorCollider.enabled = false;
+
+        // --- AQUÍ OCURRE LA DECISIÓN (Normal vs Victoria) ---
+
+        // CASO A: ES LA PUERTA FINAL (Tiene panel asignado)
+        if (victoryPanel != null)
+        {
+            yield return new WaitForSeconds(1.0f); // Esperamos un poco para ver la puerta abrirse
+            ShowVictoryPanel();
+            // Aquí termina la corrutina, la puerta NO se cierra nunca.
+        }
+        // CASO B: ES UNA PUERTA NORMAL (Se cierra sola)
+        else
+        {
+            if (delayBeforeClose > 0)
+            {
+                yield return new WaitForSeconds(delayBeforeClose);
+
+                // Lógica de cierre (Script 1 original)
+                if (doorCollider != null) doorCollider.enabled = true;
+                if (anim != null) anim.SetTrigger("Close");
+                if (closeSound != null) audioSource.PlayOneShot(closeSound);
+
+                isOpen = false;
+                Debug.Log("La puerta se cerró automáticamente.");
+            }
+        }
     }
 
+    // --- LÓGICA DE VICTORIA (Del Script 2) ---
     private void ShowVictoryPanel()
     {
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(true);
 
-            // Configurar textos
+            // Textos personalizados
             if (escapeText != null)
-                escapeText.text = "Escapaste... por ahora. pero sabes que sea lo que se tragó a tu amigo, sigue respirando detrás de tí.";
+                escapeText.text = "Escapaste... por ahora. Pero sabes que sea lo que sea que se tragó a tu amigo, sigue respirando detrás de ti.";
 
             if (victoryText != null)
-                victoryText.text = "¡Terminaste la demo! Gracias por llegar hasta acá… po. El equipo No-Name está muy orgulloso de ti.";
+                victoryText.text = "¡Terminaste la demo! El equipo No-Name está muy orgulloso de ti.";
 
-            // Pausar el juego
+            // Pausar juego y liberar mouse
             Time.timeScale = 0f;
-
-            // Liberar cursor
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
     }
 
-    // Detectar cuando el jugador toca la puerta
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            playerInRange = true;
-        }
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            playerInRange = false;
-        }
-    }
-
-    // Método para reiniciar el juego (puedes conectar esto a un botón en el panel)
+    // --- MÉTODOS UI (Para los botones del Panel) ---
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        // Reiniciar la escena actual
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    // Método para salir del juego (puedes conectar esto a un botón en el panel)
     public void QuitGame()
     {
+        Debug.Log("Saliendo del juego...");
         Application.Quit();
-
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
