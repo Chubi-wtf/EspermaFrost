@@ -37,6 +37,21 @@ public class PlayerMovement : MonoBehaviour
     public SphereCollider noiseCollider;
     public float baseNoiseRadius, walkNoiseRadius, runNoiseRadius;
 
+    [Header("Variables Sonido")]
+    [SerializeField] public AudioClip damageSoundClip;
+    [SerializeField] public AudioClip walkingSoundClip;
+    [SerializeField] public AudioClip runningSoundClip;
+
+    //Variables para frencuencia de sonidos de caminar:
+    public float stepInterval = 9f;
+    private float stepTimer = 0f;
+
+
+    [SerializeField] public AudioSource playerAudioSource;
+
+
+
+
     [Header("DEATH COLLIDER")]
     public CapsuleCollider DeathCollision;
 
@@ -46,6 +61,7 @@ public class PlayerMovement : MonoBehaviour
     public bool isPlayerCrouching = false;
     public bool isRunning = false;
     public bool isStaminaEmpty = false;
+    public bool isWalking = false;
     private float timeSinceLastRun = 0f;
     private bool isAdrenalineActive = false;
     public bool canMove = true; // Control para bloquear movimiento y cámara
@@ -93,6 +109,9 @@ public class PlayerMovement : MonoBehaviour
             noiseCollider.radius = baseNoiseRadius;
             noiseCollider.isTrigger = true;
         }
+
+        playerAudioSource = GetComponent<AudioSource>();
+
     }
 
     private void Update()
@@ -106,6 +125,33 @@ public class PlayerMovement : MonoBehaviour
         }
 
         UpdateNoiseRadius(currentSpeed);
+
+        #region isWalkingBool
+
+        if (rb.linearVelocity != Vector3.zero && !isRunning)
+        {
+            if (!isWalking) // solo entra la primera vez
+            {
+                Debug.Log("Player started walking");
+                isWalking = true;
+
+                playerAudioSource.clip = walkingSoundClip;
+                playerAudioSource.loop = true; // que se repita mientras camina
+                playerAudioSource.Play();
+            }
+        }
+        else
+        {
+            if (isWalking) // solo entra la primera vez que deja de caminar
+            {
+                Debug.Log("Player stopped walking");
+                isWalking = false;
+
+                playerAudioSource.Stop();
+            }
+        }
+
+        #endregion
     }
 
     // --- SISTEMA DE STAMINA ---
@@ -263,6 +309,24 @@ public class PlayerMovement : MonoBehaviour
             {
                 currentSpeed = runSpeed;
                 isRunning = true;
+                isWalking = false;
+
+
+                if (!playerAudioSource.isPlaying || playerAudioSource.clip != runningSoundClip)
+                {
+                    playerAudioSource.clip = runningSoundClip;
+                    playerAudioSource.loop = true;   // que se repita mientras corre
+                    playerAudioSource.Play();
+                }
+            }
+        }
+        else
+        {
+            // Cuando deja de correr, detener el sonido
+            if (isRunning)
+            {
+                isRunning = false;
+                playerAudioSource.Stop();
             }
         }
 
