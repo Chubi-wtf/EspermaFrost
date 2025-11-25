@@ -6,7 +6,9 @@ public class PlayerInteraction : MonoBehaviour
 {
     private bool isUsingItem = false;
     private PlayerMovement playerMovement;
+
     public GameObject objectToActivate;
+
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     public float interactionDistance = 3f;
 

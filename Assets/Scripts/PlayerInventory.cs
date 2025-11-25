@@ -16,8 +16,8 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-        // inventory = new ItemTemplate[3]; //Antiguo
-        inventory = new ItemTemplate[1]; 
+        inventory = new ItemTemplate[2]; 
+      //  inventory = new ItemTemplate[1];
 
     }
 
