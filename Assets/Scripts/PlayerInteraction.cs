@@ -1,11 +1,12 @@
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.Rendering.STP;
 
 public class PlayerInteraction : MonoBehaviour
 {
     private bool isUsingItem = false;
     private PlayerMovement playerMovement;
-
+    public GameObject objectToActivate;
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     public float interactionDistance = 3f;
 
@@ -144,6 +145,12 @@ public class PlayerInteraction : MonoBehaviour
             case ItemTemplate.ITEM_TYPE.Adrenalina:
                 playerMovement.ActivateAdrenaline(itemTemplate.adrenalineDuration);
                 break;
+        }
+
+        if (objectToActivate != null)
+        {
+            objectToActivate.SetActive(false);
+            Debug.Log("Objeto desactivado al usar el ítem.");
         }
 
         PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
