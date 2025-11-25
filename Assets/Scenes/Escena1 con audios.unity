@@ -51684,7 +51684,7 @@ MonoBehaviour:
   baseNoiseRadius: 5
   walkNoiseRadius: 10
   runNoiseRadius: 20
-  damageSoundClip: {fileID: 0}
+  damageSoundClip: {fileID: 8300000, guid: 722a6f5a4acefc14aa703f5f8eff4d7a, type: 3}
   walkingSoundClip: {fileID: 8300000, guid: 028d5406b2c4cc9498bf8e3915666631, type: 3}
   runningSoundClip: {fileID: 8300000, guid: 75d20a748fcfe9a4bac9608a894d72cb, type: 3}
   stepInterval: 9
@@ -51808,11 +51808,11 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 22d1c3f047be6d84cb727c15e4a4ca1b, type: 3}
+  m_Resource: {fileID: 8300000, guid: c4051e8adf29f9a4bbcc375e26cfd37d, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.226
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
