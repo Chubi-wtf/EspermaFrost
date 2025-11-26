@@ -13,7 +13,8 @@ public class PlayerMovement : MonoBehaviour
     public float staminaDrainRate = 15f;
     public float staminaRegenRate = 10f;
     public float regenDelay = 1.5f;
-    public float runCooldown = 2f; 
+    public float runCooldown = 2f;
+    public GameObject darkness;
 
     [Header("CONFIGURACIÓN DE KNOCKBACK")]
     public float knockbackForce = 15f;
@@ -111,6 +112,7 @@ public class PlayerMovement : MonoBehaviour
                 isStaminaEmpty = true;
                 isRunning = false;
                 timeSinceLastRun = -runCooldown; // <-- NUEVO: Inicia el cooldown
+                darkness.SetActive(true);
                 Debug.Log("¡Estamina agotada! Cooldown activado.");
             }
         }
@@ -128,6 +130,7 @@ public class PlayerMovement : MonoBehaviour
                 if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
                 {
                     isStaminaEmpty = false;
+                    darkness.SetActive(false);
                 }
             }
         }
