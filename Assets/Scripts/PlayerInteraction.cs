@@ -7,8 +7,6 @@ public class PlayerInteraction : MonoBehaviour
     private bool isUsingItem = false;
     private PlayerMovement playerMovement;
 
-    public GameObject objectToActivate;
-
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     public float interactionDistance = 3f;
 
@@ -149,10 +147,9 @@ public class PlayerInteraction : MonoBehaviour
                 break;
         }
 
-        if (objectToActivate != null)
+        if (PlayerInventory.Instance.activateObjectsBySlot[slotIndex] != null)
         {
-            objectToActivate.SetActive(false);
-            Debug.Log("Objeto desactivado al usar el ítem.");
+            PlayerInventory.Instance.activateObjectsBySlot[slotIndex].SetActive(false);
         }
 
         PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
