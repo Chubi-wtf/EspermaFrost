@@ -262,7 +262,7 @@ GameObject:
   - component: {fileID: 99095556}
   - component: {fileID: 99095559}
   - component: {fileID: 99095558}
-  - component: {fileID: 99095557}
+  - component: {fileID: 99095560}
   m_Layer: 5
   m_Name: "Cr\xE9ditos"
   m_TagString: Untagged
@@ -290,28 +290,6 @@ RectTransform:
   m_AnchoredPosition: {x: -483, y: -1499.6031}
   m_SizeDelta: {x: 0, y: 814.0657}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!95 &99095557
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 99095555}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 10e354093e1a15549a294abf2a498bc0, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &99095558
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,6 +328,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 99095555}
   m_CullTransparentMesh: 1
+--- !u!95 &99095560
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99095555}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c10e4df1ef5372748a5de5fc1d467be8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &182041194
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,7 +540,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anim: {fileID: 1918939889}
   anim2: {fileID: 511249049}
-  anim3: {fileID: 99095557}
+  anim3: {fileID: 99095560}
   CreditsBack: {fileID: 182041194}
 --- !u!1 &292175929
 GameObject:
