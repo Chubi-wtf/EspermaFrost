@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.Rendering.STP;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -35,7 +36,6 @@ public class PlayerInteraction : MonoBehaviour
         // Lógica de uso de ítems consumibles (1, 2, 3)
         if (Input.GetKeyDown(KeyCode.Alpha1)) UseItemFromSlot(0);
         if (Input.GetKeyDown(KeyCode.Alpha2)) UseItemFromSlot(1);
-        if (Input.GetKeyDown(KeyCode.Alpha3)) UseItemFromSlot(2);
 
         // Lógica de INTERACCIÓN (Puertas y Recogida de Ítems)
         if (Input.GetKeyDown(KeyCode.E))
@@ -44,6 +44,7 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    // NUEVO MÉTODO: Maneja la interacción Raycast unificada
     private void HandleInteraction()
     {
         Transform cameraTransform = playerMovement.GetComponentInChildren<Camera>().transform;
@@ -51,21 +52,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance))
         {
-            // 1. INTENTAR INTERACTUAR CON TERMINAL
-            TerminalController terminal = hit.collider.GetComponent<TerminalController>();
-            if (terminal == null)
-            {
-                // Busca en el padre, ya que el collider está en el hijo
-                terminal = hit.collider.GetComponentInParent<TerminalController>();
-            }
-
-            if (terminal != null)
-            {
-                terminal.ActivateTerminal();
-                return; // Salir después de activar la terminal
-            }
-
-            // 2. INTENTAR INTERACTUAR CON PUERTA
+            // 1. INTENTAR INTERACTUAR CON PUERTA
             DoorController door = hit.collider.GetComponent<DoorController>();
             if (door != null)
             {
@@ -79,18 +66,19 @@ public class PlayerInteraction : MonoBehaviour
                 return; // Salir después de intentar la interacción con la puerta
             }
 
-            // 3. INTENTAR RECOGER UN ÍTEM (Botiquín, Adrenalina, KeyCard, etc.)
+            // 2. INTENTAR RECOGER UN ÍTEM (Botiquín, Adrenalina, KeyCard, etc.)
             ItemConfig item = hit.collider.GetComponent<ItemConfig>();
             if (item != null)
             {
+                // Llamamos al método de recogida en el inventario
                 PlayerInventory.Instance.TryAddItem(item);
                 return; // Salir después de intentar recoger el ítem
             }
 
+            // Si el Raycast golpea algo, pero no es interactuable
             Debug.Log("No hay nada que interactuar aquí.");
         }
     }
-
     private string GetHeldKeyCardID()
     {
         for (int i = 0; i < PlayerInventory.Instance.inventory.Length; i++)
@@ -138,7 +126,6 @@ public class PlayerInteraction : MonoBehaviour
         if (itemTemplate.useDuration > 0)
         {
             StartCoroutine(UseItemWithDuration(itemTemplate, slotIndex));
-            return;
         }
         else
         {
@@ -148,31 +135,23 @@ public class PlayerInteraction : MonoBehaviour
 
     private void ConsumeItemEffect(ItemTemplate itemTemplate, int slotIndex)
     {
-        bool shouldConsume = true;
-
         switch (itemTemplate.itemType)
         {
             case ItemTemplate.ITEM_TYPE.Botiquin:
-                float healed = playerMovement.Heal(itemTemplate.healAmount);
-                if (healed <= 0)
-                {
-                    Debug.Log("Botiquín usado pero no curó. Slot no se vacía.");
-                    shouldConsume = false;
-                }
+                playerMovement.Heal(itemTemplate.healAmount);
                 break;
 
             case ItemTemplate.ITEM_TYPE.Adrenalina:
                 playerMovement.ActivateAdrenaline(itemTemplate.adrenalineDuration);
                 break;
-
-            default:
-                break;
         }
 
-        if (shouldConsume)
+        if (PlayerInventory.Instance.activateObjectsBySlot[slotIndex] != null)
         {
-            PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
+            PlayerInventory.Instance.activateObjectsBySlot[slotIndex].SetActive(false);
         }
+
+        PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
     }
 
 
