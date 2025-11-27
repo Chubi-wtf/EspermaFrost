@@ -7,6 +7,7 @@ public class PlayerInventory : MonoBehaviour
 
     public ItemTemplate[] inventory;
     public Inventory_UI_Slot[] inventory_UI_Slots;
+    public GameObject[] activateObjectsBySlot = new GameObject[2];
 
 
     private void Awake()
@@ -16,8 +17,8 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-        // inventory = new ItemTemplate[3]; //Antiguo
-        inventory = new ItemTemplate[1]; 
+        inventory = new ItemTemplate[2];
+        //  inventory = new ItemTemplate[1];
 
     }
 
@@ -33,14 +34,23 @@ public class PlayerInventory : MonoBehaviour
         {
             if (inventory[i] == null)
             {
+                // Guardar el item
                 inventory[i] = itemToAdd.itemTemplate;
+
+                // Actualizar UI
                 inventory_UI_Slots[i].SetSlot(itemToAdd);
+
+                // --- ACTIVAR OBJETO SEGÚN EL SLOT ---
+                if (activateObjectsBySlot[i] != null)
+                {
+                    activateObjectsBySlot[i].SetActive(true);
+                    Debug.Log("Activando objeto del slot: " + i);
+                }
+
                 Destroy(itemToAdd.gameObject);
-                Debug.Log($"Ítem {itemToAdd.itemTemplate.itemName} recogido con éxito.");
-                return; // Salir después de añadir
+                return;
             }
         }
-        Debug.Log("Inventario lleno. No se puede recoger el ítem.");
     }
 
     public bool CanUseItem(int itemIndex)
