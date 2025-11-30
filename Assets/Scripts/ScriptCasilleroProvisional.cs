@@ -18,7 +18,7 @@ public class ScriptCasilleroProvisional : MonoBehaviour
     public bool canInteract = false;
 
     // Tiempo de transición para suavizar el movimiento
-    private float transitionTime = 0.5f;
+    //private float transitionTime = 0.5f;
     private PlayerMovement playerMovement;
 
     void Start()
