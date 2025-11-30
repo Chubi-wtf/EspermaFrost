@@ -59100,20 +59100,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85fc6a86d7bd244dbc3b5fa2e75aea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wanderRadius: 20
-  wanderInterval: 5
   player: {fileID: 1865817717}
   patrolSpeed: 3
-  investigateSpeed: 6.5
+  chaseSpeed: 5
+  wanderRadius: 20
+  wanderInterval: 5
+  hearingSensitivity: 1
+  searchRadius: 10
+  searchDuration: 4
   proximityAttackRange: 1.5
   damageAmount: 25
   attackCooldown: 2
   fuenteAudioPrincipal: {fileID: 2100772688}
-  sonidoPatrullaLoop: {fileID: 8300000, guid: 21efe7712c531ea4384e709371c197c4, type: 3}
   sonidoRugido: {fileID: 8300000, guid: bbd1936c2023d3241b01843d6463850f, type: 3}
-  fuenteAudioPasos: {fileID: 2100772689}
-  sonidosPasos:
-  - {fileID: 8300000, guid: 028d5406b2c4cc9498bf8e3915666631, type: 3}
   currentState: 0
 --- !u!195 &2100772685
 NavMeshAgent:
