@@ -273,7 +273,7 @@ GameObject:
   - component: {fileID: 153951158}
   - component: {fileID: 153951157}
   - component: {fileID: 153951156}
-  - component: {fileID: 153951155}
+  - component: {fileID: 153951160}
   m_Layer: 5
   m_Name: TITULO
   m_TagString: Untagged
@@ -281,19 +281,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &153951155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 153951154}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be3fcd5ccfc26104fb5e63445f980613, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fadeDuration: 1
 --- !u!225 &153951156
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -363,6 +350,19 @@ RectTransform:
   m_AnchoredPosition: {x: 527, y: -182}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &153951160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 153951154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3fcd5ccfc26104fb5e63445f980613, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeDuration: 1
 --- !u!1 &178300823
 GameObject:
   m_ObjectHideFlags: 0
@@ -606,7 +606,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 153951155}
+      - m_Target: {fileID: 153951160}
         m_TargetAssemblyTypeName: FadeOutUI, Assembly-CSharp
         m_MethodName: FadeIn
         m_Mode: 1
@@ -687,6 +687,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anim: {fileID: 539541304}
   anim2: {fileID: 55933670}
+  anim3: {fileID: 1186577162}
+  CreditsBack: {fileID: 252969524}
 --- !u!4 &260181158
 Transform:
   m_ObjectHideFlags: 0
@@ -1508,7 +1510,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 153951155}
+      - m_Target: {fileID: 153951160}
         m_TargetAssemblyTypeName: FadeOutUI, Assembly-CSharp
         m_MethodName: FadeOut
         m_Mode: 1
@@ -2572,8 +2574,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -483, y: -1691}
-  m_SizeDelta: {x: 0, y: 1022.8594}
+  m_AnchoredPosition: {x: -483, y: -1405.2344}
+  m_SizeDelta: {x: 0, y: 611.3281}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1186577162
 Animator:
@@ -3595,7 +3597,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -291}
+  m_AnchoredPosition: {x: 0, y: -491}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1855157871
@@ -3628,8 +3630,7 @@ MonoBehaviour:
     qu\xE9? \xBFQu\xE9 pasa si a los hombres no se les juzga como corresponde?\r\n\r\nLa
     gente dice que le tema al infierno, pero, hay un punto en que has hecho tantas
     atrocidades que si llegas al infierno, el diablo te juzgar\xE1 como un amigo...
-    Pero la verdad es: \n\nQue ya dej\xE9 de creer en algo...\n\n\n\n\nCr\xE9ditos:
-    Miki"
+    Pero la verdad es: \n\nQue ya dej\xE9 de creer en algo..."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_sharedMaterial: {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
@@ -3694,7 +3695,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -719.33374, y: -1295.3794, z: -718.6472, w: -718.93774}
+  m_margin: {x: -719.33374, y: -1295.3794, z: -718.6472, w: -322.85864}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
