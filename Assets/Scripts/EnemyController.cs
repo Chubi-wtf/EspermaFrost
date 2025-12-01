@@ -1,52 +1,57 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
-using System;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyController : MonoBehaviour
 {
-    #region Variables
+    #region Configuración
 
-    [Header("Configuración de Patrullaje")]
+    [Header("Referencias")]
+    public Transform player;
+    private PlayerMovement playerScript;
+
+    [Header("Movimiento")]
+    public float patrolSpeed = 3.5f;
+    public float chaseSpeed = 5.0f; // Velocidad al perseguir Y buscar frenéticamente
     public float wanderRadius = 20f;
     public float wanderInterval = 5f;
-    private float timer;
 
-    [Header("Configuración de IA")]
-    public Transform player;
-    public float patrolSpeed = 3f;
-    public float investigateSpeed = 6.5f; // <-- Nueva velocidad para investigar
+    [Header("Sensores (Oído)")]
+    [Tooltip("Multiplicador de audición. 1 = Normal.")]
+    public float hearingSensitivity = 1.0f;
 
-    [Header("Configuración de Ataque")]
+    [Header("Búsqueda Frenética (NUEVO)")]
+    [Tooltip("Radio alrededor de tu última posición donde el enemigo correrá a buscar.")]
+    public float searchRadius = 10f;
+    [Tooltip("Tiempo que se queda esperando en el punto de búsqueda antes de rendirse.")]
+    public float searchDuration = 4f;
+
+    [Header("Ataque")]
     public float proximityAttackRange = 1.5f;
     public float damageAmount = 25f;
     public float attackCooldown = 2f;
     private float lastAttackTime = -99f;
 
-    [Header("Configuración de Audio")]
+    [Header("Audio (Opcional)")]
     public AudioSource fuenteAudioPrincipal;
-    public AudioClip sonidoPatrullaLoop;
-    public AudioClip sonidoRugido; // <-- Un solo sonido de rugido
-    [Space(10)]
-    public AudioSource fuenteAudioPasos;
-    public AudioClip[] sonidosPasos;
-
-    // Variables privadas
-    private NavMeshAgent agent;
-    private Animator anim;
-    private Vector3 lastHeardPosition;
-    private bool canHearPlayer = false;
-    public static Action<Vector3> OnGlobalNoise;
+    public AudioClip sonidoRugido;
 
     #endregion
 
-    #region Estados de IA
+    #region Estado Interno
     public enum EnemyState
     {
-        PATROL,
-        INVESTIGATE
+        PATROL, // Patrullando tranquilo
+        CHASE,  // Persiguiendo al jugador (Sabe dónde estás)
+        SEARCH  // Corriendo a buscarte a una zona cercana (No sabe dónde estás)
     }
+
     public EnemyState currentState;
+
+    private NavMeshAgent agent;
+    private float stateTimer;
+    private Vector3 lastKnownPosition;
+    private Vector3 searchTargetPosition; // A donde correrá a buscarte
     #endregion
 
     #region Métodos de Unity
@@ -54,169 +59,174 @@ public class EnemyController : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        anim = GetComponent<Animator>(); // <-- ¡Arreglado!
-        timer = wanderInterval;
         currentState = EnemyState.PATROL;
         agent.speed = patrolSpeed;
-        lastAttackTime = -attackCooldown;
 
-        if (anim == null) { Debug.LogError("¡ERROR GRAVE! No se encontró el 'Animator'."); }
+        if (player != null) playerScript = player.GetComponent<PlayerMovement>();
+        else if (PlayerMovement.Instance != null)
+        {
+            playerScript = PlayerMovement.Instance;
+            player = PlayerMovement.Instance.transform;
+        }
     }
-
-    private void OnEnable() { OnGlobalNoise += HearGlobalNoise; }
-    private void OnDisable() { OnGlobalNoise -= HearGlobalNoise; }
 
     void Update()
     {
-        HandleStateMachine();
+        if (playerScript == null || player == null) return;
+
+        bool canHearNow = CheckIfCanHearPlayer();
+
+        switch (currentState)
+        {
+            case EnemyState.PATROL:
+                HandlePatrol(canHearNow);
+                break;
+            case EnemyState.CHASE:
+                HandleChase(canHearNow);
+                break;
+            case EnemyState.SEARCH:
+                HandleSearch(canHearNow);
+                break;
+        }
+
         CheckProximityAttack();
-
-        // Esto siempre envía la velocidad al Blend Tree
-        //if (anim != null)
-        //{
-        //    anim.SetFloat("Speed", agent.velocity.magnitude);   // Cerrado temporal
-        //}
     }
     #endregion
 
-    #region Detección de Sonido
-
-    void HearGlobalNoise(Vector3 noisePosition)
+    #region Lógica de Sentidos
+    bool CheckIfCanHearPlayer()
     {
-        if (currentState == EnemyState.INVESTIGATE) return;
-        lastHeardPosition = noisePosition;
-        ChangeState(EnemyState.INVESTIGATE);
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("PlayerNoise"))
-        {
-            canHearPlayer = true;
-            lastHeardPosition = other.transform.position;
-
-            if (currentState == EnemyState.PATROL)
-            {
-                ChangeState(EnemyState.INVESTIGATE);
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("PlayerNoise"))
-        {
-            canHearPlayer = false;
-        }
+        float distance = Vector3.Distance(transform.position, player.position);
+        float noiseRadius = playerScript.noiseCollider.radius;
+        return distance <= (noiseRadius * hearingSensitivity);
     }
     #endregion
 
-    #region Lógica de Estados
+    #region Comportamientos (Estados)
 
-    void HandleStateMachine()
+    // --- PATRULLA ---
+    void HandlePatrol(bool canHearNow)
     {
-        switch (currentState)
+        if (canHearNow) { StartChasing(); return; }
+
+        agent.speed = patrolSpeed;
+        stateTimer += Time.deltaTime;
+
+        if (stateTimer >= wanderInterval || agent.remainingDistance < 0.5f)
         {
-            case EnemyState.PATROL:
-                PatrolBehavior();
-                break;
-            case EnemyState.INVESTIGATE:
-                InvestigateBehavior();
-                break;
-        }
-    }
-
-    public void ChangeState(EnemyState newState)
-    {
-        if (currentState == newState) return;
-
-        currentState = newState;
-
-        switch (currentState)
-        {
-            case EnemyState.PATROL:
-                agent.speed = patrolSpeed;
-                if (fuenteAudioPrincipal != null && sonidoPatrullaLoop != null)
-                {
-                    fuenteAudioPrincipal.clip = sonidoPatrullaLoop;
-                    fuenteAudioPrincipal.loop = true;
-                    fuenteAudioPrincipal.Play();
-                }
-                break;
-            case EnemyState.INVESTIGATE:
-                agent.speed = investigateSpeed; // <-- Velocidad rápida
-                if (fuenteAudioPrincipal != null && sonidoRugido != null)
-                {
-                    fuenteAudioPrincipal.PlayOneShot(sonidoRugido); // <-- ¡Solo ruge!
-                }
-                break;
-        }
-    }
-
-    void PatrolBehavior()
-    {
-        timer += Time.deltaTime;
-        if (timer >= wanderInterval)
-        {
-            Vector3 newPos = GetRandomNavMeshPosition(transform.position, wanderRadius);
+            Vector3 newPos = RandomNavMeshPosition(transform.position, wanderRadius);
             agent.SetDestination(newPos);
-            timer = 0;
+            stateTimer = 0;
         }
     }
 
-    void InvestigateBehavior()
+    // --- PERSECUCIÓN (Sabe dónde estás) ---
+    void HandleChase(bool canHearNow)
     {
-        if (canHearPlayer)
+        if (canHearNow)
         {
-            agent.SetDestination(lastHeardPosition);
+            // Te escucha: Actualiza destino constante y corre
+            agent.speed = chaseSpeed;
+            lastKnownPosition = player.position;
+            agent.SetDestination(lastKnownPosition);
         }
-
-        if (!canHearPlayer)
+        else
         {
-            if (agent.remainingDistance < 1.0f && !agent.pathPending)
+            // --- CAMBIO AQUÍ: INICIO DE BÚSQUEDA AGRESIVA ---
+            // Te perdió. En vez de ir a donde estabas, calcula un punto random CERCA de donde estabas.
+            currentState = EnemyState.SEARCH;
+
+            // Calculamos un punto aleatorio alrededor de la última posición conocida
+            searchTargetPosition = RandomNavMeshPosition(lastKnownPosition, searchRadius);
+
+            agent.SetDestination(searchTargetPosition);
+            agent.speed = chaseSpeed; // ¡SIGUE CORRIENDO!
+
+            stateTimer = 0;
+        }
+    }
+
+    // --- BÚSQUEDA (Corre a ver si estás por ahí) ---
+    void HandleSearch(bool canHearNow)
+    {
+        // Si te vuelve a escuchar, cancela la búsqueda y persigue
+        if (canHearNow) { StartChasing(); return; }
+
+        // Mantiene la velocidad de correr mientras viaja al punto de búsqueda
+        if (agent.remainingDistance > 1.0f)
+        {
+            agent.speed = chaseSpeed;
+        }
+        else
+        {
+            // Llegó al punto random de búsqueda. Ahora se calma y mira.
+            if (!agent.pathPending)
             {
-                ChangeState(EnemyState.PATROL);
+                // Opcional: Aquí podrías bajar la velocidad o reproducir animación de "mirar"
+                agent.speed = 0; // Se detiene para escuchar/mirar
+
+                stateTimer += Time.deltaTime;
+
+                if (stateTimer >= searchDuration)
+                {
+                    // No te encontró, vuelve a patrullar
+                    currentState = EnemyState.PATROL;
+                    stateTimer = 0;
+                }
             }
+        }
+    }
+
+    void StartChasing()
+    {
+        if (currentState != EnemyState.CHASE)
+        {
+            currentState = EnemyState.CHASE;
+            agent.ResetPath();
+            if (fuenteAudioPrincipal != null && sonidoRugido != null)
+                fuenteAudioPrincipal.PlayOneShot(sonidoRugido);
         }
     }
     #endregion
 
-    #region Métodos Auxiliares
+    #region Utilidades
     void CheckProximityAttack()
     {
         if (Vector3.Distance(transform.position, player.position) < proximityAttackRange &&
             Time.time > lastAttackTime + attackCooldown)
         {
-            if (player.TryGetComponent<PlayerMovement>(out var playerMovement))
-            {
-                playerMovement.TakeDamage(damageAmount, transform.position);
-                lastAttackTime = Time.time;
-            }
+            playerScript.TakeDamage(damageAmount, transform.position);
+            lastAttackTime = Time.time;
         }
     }
 
-    public static Vector3 GetRandomNavMeshPosition(Vector3 origin, float distance)
+    Vector3 RandomNavMeshPosition(Vector3 origin, float dist)
     {
-        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * distance;
-        randomDirection += origin;
+        Vector3 randDir = Random.insideUnitSphere * dist;
+        randDir += origin;
         NavMeshHit navHit;
-        if (NavMesh.SamplePosition(randomDirection, out navHit, distance, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(randDir, out navHit, dist, NavMesh.AllAreas))
         {
             return navHit.position;
         }
         return origin;
     }
-    #endregion
 
-    #region Eventos de Animacion
-    // (Ya no necesitamos IniciarPersecucion)
-
-    public void ReproducirPaso()
+    private void OnDrawGizmos()
     {
-        if (fuenteAudioPasos != null && sonidosPasos.Length > 0)
+        if (currentState == EnemyState.CHASE && player != null)
         {
-            AudioClip clip = sonidosPasos[UnityEngine.Random.Range(0, sonidosPasos.Length)];
-            fuenteAudioPasos.PlayOneShot(clip);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, player.position);
+        }
+        if (currentState == EnemyState.SEARCH)
+        {
+            // Dibuja el área donde está buscando
+            Gizmos.color = new Color(1, 0.5f, 0, 0.5f); // Naranja
+            Gizmos.DrawWireSphere(lastKnownPosition, searchRadius);
+            // Dibuja el punto exacto al que está corriendo
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(searchTargetPosition, 0.5f);
         }
     }
     #endregion

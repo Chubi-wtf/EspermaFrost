@@ -27,11 +27,19 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 10f;
 
     [Header("VARIABLES EFECTO DE REDUCCIÓN DE VELOCIDAD")]
-    public float slowDuration = 2f;      // Duración en segundos del efecto
-    public float slowMultiplier = 0.5f;    // Multiplicador de velocidad
-    private float originalMovementSpeed;    // Para guardar la velocidad base original
-    private float originalRunSpeed;         // Para guardar la velocidad de correr original
-    public bool isSlowed = false;          // Evita aplicar el slow varias veces
+    public float slowDuration = 2f;
+    public float slowMultiplier = 0.5f;
+    private float originalMovementSpeed;
+    private float originalRunSpeed;
+    public bool isSlowed = false;
+
+    [Header("CONFIGURACIÓN DE AGACHARSE (NUEVO)")]
+    public float crouchHeight = 1f;       // Altura al estar agachado
+    public float crouchSpeedMultiplier = 0.5f; // Velocidad al ir agachado
+    public float crouchTransitionSpeed = 10f;  // Que tan rápido baja la cámara
+    private float originalHeight;         // Altura original (se guarda sola)
+    private Vector3 originalCenter;       // Centro original (se guarda solo)
+    private Coroutine crouchCoroutine;    // Para manejar la animación suave
 
     [Header("VARIABLES DE RUIDO")]
     public SphereCollider noiseCollider;
@@ -48,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
     public bool isStaminaEmpty = false;
     private float timeSinceLastRun = 0f;
     private bool isAdrenalineActive = false;
-    public bool canMove = true; // Control para bloquear movimiento y cámara
+    public bool canMove = true;
 
     private Transform cam;
     private float horizontalRotation, verticalRotation;
@@ -63,16 +71,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
-        // Asignación de la instancia Singleton
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject); // Evita duplicados
-            return;
-        }
+        if (Instance == null) { Instance = this; }
+        else { Destroy(gameObject); return; }
 
         Cursor.lockState = CursorLockMode.Locked;
         cam = GetComponentInChildren<Camera>().transform;
@@ -81,15 +81,25 @@ public class PlayerMovement : MonoBehaviour
 
     private void Start()
     {
+        // Configuración de Collider y Agachado
         cc = GetComponent<CapsuleCollider>();
+        originalHeight = cc.height;
+        originalCenter = cc.center;
+
+        // Configuración de Stats
         currentHealth = maxHealth;
         currentStamina = maxStamina;
-
         originalMovementSpeed = movementSpeed;
         originalRunSpeed = runSpeed;
 
+        // Configuración de Ruido (Seguridad)
         if (noiseCollider != null)
         {
+            // Asignamos valores por defecto si están en 0 para evitar errores
+            if (baseNoiseRadius == 0) baseNoiseRadius = 5f;
+            if (walkNoiseRadius == 0) walkNoiseRadius = 15f;
+            if (runNoiseRadius == 0) runNoiseRadius = 30f;
+
             noiseCollider.radius = baseNoiseRadius;
             noiseCollider.isTrigger = true;
         }
@@ -102,7 +112,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
-            Crouch();
+            ToggleCrouch();
         }
 
         UpdateNoiseRadius(currentSpeed);
@@ -111,7 +121,6 @@ public class PlayerMovement : MonoBehaviour
     // --- SISTEMA DE STAMINA ---
     private void HandleStamina()
     {
-        // Si la adrenalina está activa, la estamina no baja y se mantiene al máximo
         if (isAdrenalineActive)
         {
             currentStamina = maxStamina;
@@ -121,7 +130,6 @@ public class PlayerMovement : MonoBehaviour
 
         if (isRunning)
         {
-            // CONSUMO
             currentStamina -= staminaDrainRate * Time.deltaTime;
             currentStamina = Mathf.Max(currentStamina, 0f);
             timeSinceLastRun = 0f;
@@ -130,21 +138,17 @@ public class PlayerMovement : MonoBehaviour
             {
                 isStaminaEmpty = true;
                 isRunning = false;
-                timeSinceLastRun = -runCooldown; // Inicia el cooldown negativo
-                Debug.Log("¡Estamina agotada! Cooldown activado.");
+                timeSinceLastRun = -runCooldown;
+                Debug.Log("¡Estamina agotada!");
             }
         }
         else if (currentStamina < maxStamina)
         {
-            // REGENERACIÓN
             timeSinceLastRun += Time.deltaTime;
-
-            // Solo regenera si ha pasado el tiempo de delay
             if (timeSinceLastRun >= Mathf.Max(regenDelay, 0f))
             {
                 currentStamina += staminaRegenRate * Time.deltaTime;
                 currentStamina = Mathf.Min(currentStamina, maxStamina);
-
                 if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
                 {
                     isStaminaEmpty = false;
@@ -153,31 +157,141 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    #region RADIO DE ESCUCHA
+    #region RADIO DE ESCUCHA (MODIFICADO)
     private void UpdateNoiseRadius(float currentSpeed)
     {
         if (noiseCollider == null) return;
 
-        if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+        // 1. SI ESTÁ AGACHADO -> RUIDO CERO (Prioridad Máxima)
+        if (isPlayerCrouching)
         {
-            if (currentSpeed == runSpeed)
-                noiseCollider.radius = runNoiseRadius;
-            else
-                noiseCollider.radius = walkNoiseRadius;
+            noiseCollider.radius = 0f;
+            return; // Salimos de la función aquí para que nada más lo modifique
         }
-        else
+
+        // 2. Si no se mueve -> Ruido Base
+        if (Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0)
         {
             noiseCollider.radius = baseNoiseRadius;
+            return;
         }
+
+        // 3. Movimiento Normal
+        if (currentSpeed == runSpeed)
+            noiseCollider.radius = runNoiseRadius;
+        else
+            noiseCollider.radius = walkNoiseRadius;
     }
     #endregion
 
-    #region DAÑO Y COLLIDERS
+    #region MOVIMIENTO Y AGACHADO
+    private void Movement()
+    {
+        if (!canMove) return;
+
+        // Velocidad base
+        float targetSpeed = movementSpeed;
+        isRunning = false;
+
+        // --- LÓGICA DE VELOCIDAD ---
+
+        // 1. Si está agachado, se mueve lento
+        if (isPlayerCrouching)
+        {
+            targetSpeed *= crouchSpeedMultiplier;
+        }
+        // 2. Si corre (Solo si NO está agachado, NO tiene slow y tiene stamina)
+        else if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
+        {
+            if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+            {
+                targetSpeed = runSpeed;
+                isRunning = true;
+            }
+        }
+
+        // 3. Si se le acabó la estamina, forzamos caminar
+        if (isStaminaEmpty && isRunning)
+        {
+            targetSpeed = movementSpeed;
+            isRunning = false;
+        }
+
+        currentSpeed = targetSpeed;
+
+        // Inputs y Cámara
+        keyboardX = Input.GetAxis("Horizontal");
+        keyboardY = Input.GetAxis("Vertical");
+
+        float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * mouseSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * mouseSensitivity;
+
+        horizontalRotation += mouseX;
+        verticalRotation -= mouseY;
+        verticalRotation = Mathf.Clamp(verticalRotation, -60, 60);
+
+        transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, horizontalRotation, transform.localEulerAngles.z);
+        cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
+    }
+
+    // --- NUEVO SISTEMA DE AGACHADO SUAVE ---
+    private void ToggleCrouch()
+    {
+        isPlayerCrouching = !isPlayerCrouching;
+
+        // Si ya hay una transición ocurriendo, la paramos para empezar la nueva
+        if (crouchCoroutine != null) StopCoroutine(crouchCoroutine);
+        crouchCoroutine = StartCoroutine(SmoothCrouch());
+    }
+
+    private IEnumerator SmoothCrouch()
+    {
+        float targetHeight = isPlayerCrouching ? crouchHeight : originalHeight;
+        // Calculamos el centro para que los pies no se hundan en el suelo
+        Vector3 targetCenter = isPlayerCrouching ? new Vector3(0, -0.5f, 0) : originalCenter;
+
+        float currentHeight = cc.height;
+        Vector3 currentCenter = cc.center;
+
+        float timeElapsed = 0;
+
+        while (timeElapsed < 1)
+        {
+            // Lerp para suavizar la transición
+            cc.height = Mathf.Lerp(currentHeight, targetHeight, timeElapsed);
+            cc.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed);
+
+            timeElapsed += Time.deltaTime * crouchTransitionSpeed;
+            yield return null;
+        }
+
+        // Aseguramos valores finales exactos
+        cc.height = targetHeight;
+        cc.center = targetCenter;
+    }
+
+    private void FixedUpdate()
+    {
+        Vector3 moveInput = new Vector3(keyboardX, 0, keyboardY);
+        if (moveInput.magnitude > 1) moveInput.Normalize();
+
+        Vector3 targetMove = transform.TransformDirection(moveInput) * currentSpeed;
+
+        // Compatibilidad Unity 6 / Versiones viejas
+#if UNITY_6000_0_OR_NEWER
+        rb.linearVelocity = new Vector3(targetMove.x, rb.linearVelocity.y, targetMove.z);
+#else
+            rb.velocity = new Vector3(targetMove.x, rb.velocity.y, targetMove.z);
+#endif
+    }
+    #endregion
+
+    #region DAÑO, SALUD Y MÉTODOS PÚBLICOS
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            // Lógica futura de choque con enemigo
+            // Lógica de choque
         }
     }
 
@@ -188,10 +302,7 @@ public class PlayerMovement : MonoBehaviour
 
         Debug.Log("Vida actual: " + currentHealth);
 
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        if (currentHealth <= 0) Die();
         else
         {
             ApplyKnockback(attackerPosition);
@@ -204,7 +315,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 knockbackDirection = transform.position - attackerPosition;
         knockbackDirection.y = 0;
         knockbackDirection.Normalize();
-
         StopCoroutine("KnockbackRoutine");
         StartCoroutine(KnockbackRoutine(knockbackDirection));
     }
@@ -213,7 +323,6 @@ public class PlayerMovement : MonoBehaviour
     {
         float startTime = Time.time;
         Vector3 continuousForce = direction * knockbackForce;
-
         while (Time.time < startTime + knockbackDuration)
         {
             rb.AddForce(continuousForce, ForceMode.Force);
@@ -232,101 +341,17 @@ public class PlayerMovement : MonoBehaviour
         isSlowed = true;
         movementSpeed = originalMovementSpeed * slowMultiplier;
         runSpeed = originalRunSpeed * slowMultiplier;
-
         yield return new WaitForSeconds(slowDuration);
-
         movementSpeed = originalMovementSpeed;
         runSpeed = originalRunSpeed;
         isSlowed = false;
     }
 
-    private void Die()
-    {
-        Debug.Log("¡El jugador ha muerto!");
-        this.enabled = false;
-        rb.linearVelocity = Vector3.zero;
-    }
-    #endregion
-
-    #region MOVIMIENTO
-    private void Movement()
-    {
-        if (!canMove) return;
-
-        currentSpeed = movementSpeed;
-        isRunning = false;
-
-        // Correr: Shift + No Slow + Estamina disponible
-        if (Input.GetKey(KeyCode.LeftShift) && !isSlowed && !isStaminaEmpty)
-        {
-            if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
-            {
-                currentSpeed = runSpeed;
-                isRunning = true;
-            }
-        }
-
-        // Si estamina vacía, forzar caminar
-        if (isStaminaEmpty)
-        {
-            currentSpeed = movementSpeed;
-            isRunning = false;
-        }
-
-        keyboardX = Input.GetAxis("Horizontal");
-        keyboardY = Input.GetAxis("Vertical");
-
-        // Cámara
-        float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * mouseSensitivity;
-
-        horizontalRotation += mouseX;
-        verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -60, 60);
-
-        transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, horizontalRotation, transform.localEulerAngles.z);
-        cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
-    }
-
-    private void Crouch()
-    {
-        isPlayerCrouching = !isPlayerCrouching;
-
-        if (isPlayerCrouching)
-        {
-            cc.height = 1f;
-            cc.center = new Vector3(0f, -0.5f, 0f);
-        }
-        else
-        {
-            cc.height = 2f;
-            cc.center = new Vector3(0f, 0f, 0f);
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        Vector3 moveInput = new Vector3(keyboardX, 0, keyboardY);
-        if (moveInput.magnitude > 1) moveInput.Normalize();
-
-        Vector3 targetMove = transform.TransformDirection(moveInput) * currentSpeed;
-        rb.linearVelocity = new Vector3(targetMove.x, rb.linearVelocity.y, targetMove.z);
-    }
-    #endregion
-
-    #region HEALTH & STAMINA (PUBLIC METHODS)
     public float Heal(float amount)
     {
-        float healthBeforeHeal = currentHealth;
+        float startHealth = currentHealth;
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-
-        float actualHealedAmount = currentHealth - healthBeforeHeal;
-
-        if (actualHealedAmount > 0)
-        {
-            Debug.Log($"[Botiquín] Curado {actualHealedAmount} de vida. Salud actual: {currentHealth}");
-        }
-        return actualHealedAmount;
+        return currentHealth - startHealth;
     }
 
     public void AddStamina(float amount)
@@ -335,29 +360,32 @@ public class PlayerMovement : MonoBehaviour
         {
             currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
             isStaminaEmpty = false;
-            Debug.Log($"[Consumible] Recargado {amount} de estamina.");
         }
     }
 
     public void ActivateAdrenaline(float duration)
     {
-        if (adrenalineCoroutine != null)
-        {
-            StopCoroutine(adrenalineCoroutine);
-        }
+        if (adrenalineCoroutine != null) StopCoroutine(adrenalineCoroutine);
         adrenalineCoroutine = StartCoroutine(AdrenalineRoutine(duration));
     }
 
     private IEnumerator AdrenalineRoutine(float duration)
     {
         isAdrenalineActive = true;
-        isStaminaEmpty = false; // Reactiva inmediatamente si estaba cansado
-        Debug.Log($"Adrenalina activada. Estamina infinita por {duration} segundos.");
-
+        isStaminaEmpty = false;
         yield return new WaitForSeconds(duration);
-
         isAdrenalineActive = false;
-        Debug.Log("Adrenalina agotada.");
+    }
+
+    private void Die()
+    {
+        Debug.Log("¡El jugador ha muerto!");
+        this.enabled = false;
+#if UNITY_6000_0_OR_NEWER
+        rb.linearVelocity = Vector3.zero;
+#else
+            rb.velocity = Vector3.zero;
+#endif
     }
     #endregion
 }
