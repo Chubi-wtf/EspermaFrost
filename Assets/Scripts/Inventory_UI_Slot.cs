@@ -17,7 +17,7 @@ public class Inventory_UI_Slot : MonoBehaviour
     // Cambiado de 'Item' a 'ItemConfig'
     public void SetSlot(ItemConfig itemToSet)
     {
-        slotImage.color = itemToSet.itemTemplate.itemColor;
+        slotImage.sprite = itemToSet.itemTemplate.itemIcon;
         slotText.text = itemToSet.itemTemplate.itemName;
     }
 
@@ -27,7 +27,7 @@ public class Inventory_UI_Slot : MonoBehaviour
     public void ClearSlot(int buttonIndex)
     {
         // 1. Limpiar la UI
-        slotImage.color = Color.white;
+        slotImage.sprite = null;
         slotText.text = null;
 
         // 2. Limpiar el inventario de datos

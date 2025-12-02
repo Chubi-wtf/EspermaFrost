@@ -4,7 +4,8 @@ using UnityEngine;
 public class ItemTemplate : ScriptableObject
 {
     public string itemName;
-    public Color itemColor;
+    //public Color itemColor;
+    public Sprite itemIcon;
     public enum ITEM_TYPE
     {
         None,
