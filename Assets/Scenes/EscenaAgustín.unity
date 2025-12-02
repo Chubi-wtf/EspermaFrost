@@ -34755,7 +34755,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -129.5
+      value: -48.21
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -34763,23 +34763,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 33.168
+      value: 34.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: -0.14459385
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: -0.98949116
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -34787,7 +34787,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
+      value: -196.628
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -49609,7 +49609,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58f242705a131b74faeab113a00068d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactionDistance: 3
+  interactionDistance: 5
+  natashaCommentPanel: {fileID: 2026922188}
+  natashaCommentText: {fileID: 2109449951}
+  commentDisplayTime: 3
 --- !u!114 &1865817715
 MonoBehaviour:
   m_ObjectHideFlags: 0

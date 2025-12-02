@@ -1,14 +1,19 @@
 using System.Collections;
 using UnityEngine;
+using TMPro; // Añadido para TextMeshProUGUI
 
 public class PlayerInteraction : MonoBehaviour
 {
     private bool isUsingItem = false;
     private PlayerMovement playerMovement;
-
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     public float interactionDistance = 3f;
 
+    // NUEVO: Referencias para el panel de Natasha (asigna en Inspector o busca automáticamente)
+    [Header("Panel de Comentarios de Natasha")]
+    public GameObject natashaCommentPanel; // Panel simple con TextMeshProUGUI
+    public TextMeshProUGUI natashaCommentText;
+    public float commentDisplayTime = 3f; // Cuánto dura visible el comentario
 
     private void Awake()
     {
@@ -17,26 +22,34 @@ public class PlayerInteraction : MonoBehaviour
         {
             Debug.LogError("PlayerInteraction requiere el script PlayerMovement en el mismo GameObject.");
         }
+
+        // Buscar automáticamente si no asignas
+        if (natashaCommentPanel == null)
+        {
+            natashaCommentPanel = GameObject.Find("NatashaCommentPanel");
+            if (natashaCommentPanel) natashaCommentPanel.SetActive(false);
+            natashaCommentText = natashaCommentPanel?.GetComponentInChildren<TextMeshProUGUI>();
+        }
     }
 
     private void Update()
     {
         // Obtener la Transform de la cámara para el Raycast
         Transform cameraTransform = playerMovement.GetComponentInChildren<Camera>()?.transform;
-
         // Dibujar el Raycast para depuración
         if (cameraTransform != null)
         {
             Debug.DrawRay(cameraTransform.position, cameraTransform.forward * interactionDistance, Color.red);
         }
 
-        if (isUsingItem) return;
+        // NUEVO: Comprobar si estás mirando un objeto comentable (cada frame)
+        HandleGazeComments(cameraTransform);
 
+        if (isUsingItem) return;
         // Lógica de uso de ítems consumibles (1, 2, 3)
         if (Input.GetKeyDown(KeyCode.Alpha1)) UseItemFromSlot(0);
         if (Input.GetKeyDown(KeyCode.Alpha2)) UseItemFromSlot(1);
         if (Input.GetKeyDown(KeyCode.Alpha3)) UseItemFromSlot(2);
-
         // Lógica de INTERACCIÓN (Puertas y Recogida de Ítems)
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -44,11 +57,40 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    // NUEVO: Método para comentarios al mirar
+    private void HandleGazeComments(Transform cameraTransform)
+    {
+        if (cameraTransform == null) return;
+
+        RaycastHit hit;
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance))
+        {
+            CommentableObject commentable = hit.collider.GetComponent<CommentableObject>();
+            if (commentable == null) commentable = hit.collider.GetComponentInParent<CommentableObject>();
+
+            if (commentable != null && commentable.CanComment())
+            {
+                string comment = commentable.GetRandomComment();
+                StartCoroutine(ShowNatashaComment(comment));
+            }
+        }
+    }
+
+    // NUEVO: Corutina para mostrar el comentario temporal
+    private IEnumerator ShowNatashaComment(string text)
+    {
+        if (natashaCommentText) natashaCommentText.text = text;
+        if (natashaCommentPanel) natashaCommentPanel.SetActive(true);
+
+        yield return new WaitForSeconds(commentDisplayTime);
+
+        if (natashaCommentPanel) natashaCommentPanel.SetActive(false);
+    }
+
     private void HandleInteraction()
     {
         Transform cameraTransform = playerMovement.GetComponentInChildren<Camera>().transform;
         RaycastHit hit;
-
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance))
         {
             // 1. INTENTAR INTERACTUAR CON TERMINAL
@@ -58,27 +100,23 @@ public class PlayerInteraction : MonoBehaviour
                 // Busca en el padre, ya que el collider está en el hijo
                 terminal = hit.collider.GetComponentInParent<TerminalController>();
             }
-
             if (terminal != null)
             {
                 terminal.ActivateTerminal();
                 return; // Salir después de activar la terminal
             }
-
             // 2. INTENTAR INTERACTUAR CON PUERTA
             DoorController door = hit.collider.GetComponent<DoorController>();
             if (door != null)
             {
                 string keyID = GetHeldKeyCardID();
                 bool success = door.InteractDoor(keyID);
-
                 if (!success)
                 {
                     Debug.Log("Puerta bloqueada o sin KeyCard adecuada.");
                 }
                 return; // Salir después de intentar la interacción con la puerta
             }
-
             // 3. INTENTAR RECOGER UN ÍTEM (Botiquín, Adrenalina, KeyCard, etc.)
             ItemConfig item = hit.collider.GetComponent<ItemConfig>();
             if (item != null)
@@ -86,29 +124,25 @@ public class PlayerInteraction : MonoBehaviour
                 PlayerInventory.Instance.TryAddItem(item);
                 return; // Salir después de intentar recoger el ítem
             }
-
+            // 4. INTENTAR INICIAR DIÁLOGO POR RADIO
+            RadioDialogue radio = hit.collider.GetComponent<RadioDialogue>();
+            if (radio == null)
+            {
+                radio = hit.collider.GetComponentInParent<RadioDialogue>();
+            }
+            if (radio != null)
+            {
+                radio.StartDialogue();
+                return; // Importante: salir para no seguir buscando
+            }
             Debug.Log("No hay nada que interactuar aquí.");
         }
-        // 4. INTENTAR INICIAR DIÁLOGO POR RADIO
-        RadioDialogue radio = hit.collider.GetComponent<RadioDialogue>();
-        if (radio == null)
-        {
-            radio = hit.collider.GetComponentInParent<RadioDialogue>();
-        }
-
-        if (radio != null)
-        {
-            radio.StartDialogue();
-            return; // Importante: salir para no seguir buscando
-        }
     }
-
     private string GetHeldKeyCardID()
     {
         for (int i = 0; i < PlayerInventory.Instance.inventory.Length; i++)
         {
             ItemTemplate item = PlayerInventory.Instance.inventory[i];
-
             if (item != null && item.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
             {
                 return item.keyCardID;
@@ -116,14 +150,10 @@ public class PlayerInteraction : MonoBehaviour
         }
         return string.Empty;
     }
-
-
     private void UseItemFromSlot(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= PlayerInventory.Instance.inventory.Length) return;
-
         ItemTemplate itemToUse = PlayerInventory.Instance.inventory[slotIndex];
-
         if (itemToUse != null)
         {
             if (PlayerInventory.Instance.CanUseItem(slotIndex))
@@ -133,12 +163,10 @@ public class PlayerInteraction : MonoBehaviour
                     Debug.Log("Las KeyCards se usan con la tecla de Interacción ('E') cerca de una puerta.");
                     return;
                 }
-
                 HandleItemAction(itemToUse, slotIndex);
             }
         }
     }
-
     private void HandleItemAction(ItemTemplate itemTemplate, int slotIndex)
     {
         if (itemTemplate.itemType == ItemTemplate.ITEM_TYPE.Botiquin && playerMovement.currentHealth >= playerMovement.maxHealth)
@@ -146,7 +174,6 @@ public class PlayerInteraction : MonoBehaviour
             Debug.Log("Vida al máximo. No se puede usar el Botiquín.");
             return;
         }
-
         if (itemTemplate.useDuration > 0)
         {
             StartCoroutine(UseItemWithDuration(itemTemplate, slotIndex));
@@ -157,11 +184,9 @@ public class PlayerInteraction : MonoBehaviour
             ConsumeItemEffect(itemTemplate, slotIndex);
         }
     }
-
     private void ConsumeItemEffect(ItemTemplate itemTemplate, int slotIndex)
     {
         bool shouldConsume = true;
-
         switch (itemTemplate.itemType)
         {
             case ItemTemplate.ITEM_TYPE.Botiquin:
@@ -172,33 +197,25 @@ public class PlayerInteraction : MonoBehaviour
                     shouldConsume = false;
                 }
                 break;
-
             case ItemTemplate.ITEM_TYPE.Adrenalina:
                 playerMovement.ActivateAdrenaline(itemTemplate.adrenalineDuration);
                 break;
-
             default:
                 break;
         }
-
         if (shouldConsume)
         {
             PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
         }
     }
-
-
     private IEnumerator UseItemWithDuration(ItemTemplate itemTemplate, int slotIndex)
     {
         isUsingItem = true;
-
         yield return new WaitForSeconds(itemTemplate.useDuration);
-
         if (playerMovement != null)
         {
             ConsumeItemEffect(itemTemplate, slotIndex);
         }
-
         isUsingItem = false;
     }
 }
