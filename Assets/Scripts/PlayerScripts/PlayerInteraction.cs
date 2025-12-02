@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using TMPro; // Añadido para TextMeshProUGUI
+using TMPro;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -9,26 +9,12 @@ public class PlayerInteraction : MonoBehaviour
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     public float interactionDistance = 3f;
 
-    // NUEVO: Referencias para el panel de Natasha (asigna en Inspector o busca automáticamente)
-    [Header("Panel de Comentarios de Natasha")]
-    public GameObject natashaCommentPanel; // Panel simple con TextMeshProUGUI
-    public TextMeshProUGUI natashaCommentText;
-    public float commentDisplayTime = 3f; // Cuánto dura visible el comentario
-
     private void Awake()
     {
         playerMovement = GetComponent<PlayerMovement>();
         if (playerMovement == null)
         {
             Debug.LogError("PlayerInteraction requiere el script PlayerMovement en el mismo GameObject.");
-        }
-
-        // Buscar automáticamente si no asignas
-        if (natashaCommentPanel == null)
-        {
-            natashaCommentPanel = GameObject.Find("NatashaCommentPanel");
-            if (natashaCommentPanel) natashaCommentPanel.SetActive(false);
-            natashaCommentText = natashaCommentPanel?.GetComponentInChildren<TextMeshProUGUI>();
         }
     }
 
@@ -42,7 +28,7 @@ public class PlayerInteraction : MonoBehaviour
             Debug.DrawRay(cameraTransform.position, cameraTransform.forward * interactionDistance, Color.red);
         }
 
-        // NUEVO: Comprobar si estás mirando un objeto comentable (cada frame)
+        // Comprobar si estás mirando un objeto comentable (cada frame)
         HandleGazeComments(cameraTransform);
 
         if (isUsingItem) return;
@@ -57,53 +43,58 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-    // NUEVO: Método para comentarios al mirar
+    // Método para comentarios al mirar
     private void HandleGazeComments(Transform cameraTransform)
     {
         if (cameraTransform == null) return;
 
+        int layerMask = LayerMask.GetMask("InteractableNumbers");
+
         RaycastHit hit;
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance))
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance, layerMask))
         {
+            // LOG: Raycast hit algo
+            Debug.Log("Raycast hit en: " + hit.collider.gameObject.name);
+
             CommentableObject commentable = hit.collider.GetComponent<CommentableObject>();
             if (commentable == null) commentable = hit.collider.GetComponentInParent<CommentableObject>();
 
-            if (commentable != null && commentable.CanComment())
+            if (commentable != null)
             {
-                string comment = commentable.GetRandomComment();
-                StartCoroutine(ShowNatashaComment(comment));
+                // LOG: Encontró CommentableObject
+                Debug.Log("Encontró CommentableObject en " + commentable.gameObject.name + ". Llamando ShowRandomComment.");
+                commentable.ShowRandomComment(); // Llama al método en el objeto
+            }
+            else
+            {
+                Debug.Log("No encontró CommentableObject en el hit.");
             }
         }
-    }
-
-    // NUEVO: Corutina para mostrar el comentario temporal
-    private IEnumerator ShowNatashaComment(string text)
-    {
-        if (natashaCommentText) natashaCommentText.text = text;
-        if (natashaCommentPanel) natashaCommentPanel.SetActive(true);
-
-        yield return new WaitForSeconds(commentDisplayTime);
-
-        if (natashaCommentPanel) natashaCommentPanel.SetActive(false);
+        else
+        {
+            // LOG: No hit
+            Debug.Log("No raycast hit en InteractableNumbers layer.");
+        }
     }
 
     private void HandleInteraction()
     {
         Transform cameraTransform = playerMovement.GetComponentInChildren<Camera>().transform;
+        int layerMask = LayerMask.GetMask("InteractableNumbers");
+
         RaycastHit hit;
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance))
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance, layerMask))
         {
             // 1. INTENTAR INTERACTUAR CON TERMINAL
             TerminalController terminal = hit.collider.GetComponent<TerminalController>();
             if (terminal == null)
             {
-                // Busca en el padre, ya que el collider está en el hijo
                 terminal = hit.collider.GetComponentInParent<TerminalController>();
             }
             if (terminal != null)
             {
                 terminal.ActivateTerminal();
-                return; // Salir después de activar la terminal
+                return;
             }
             // 2. INTENTAR INTERACTUAR CON PUERTA
             DoorController door = hit.collider.GetComponent<DoorController>();
@@ -115,14 +106,14 @@ public class PlayerInteraction : MonoBehaviour
                 {
                     Debug.Log("Puerta bloqueada o sin KeyCard adecuada.");
                 }
-                return; // Salir después de intentar la interacción con la puerta
+                return;
             }
             // 3. INTENTAR RECOGER UN ÍTEM (Botiquín, Adrenalina, KeyCard, etc.)
             ItemConfig item = hit.collider.GetComponent<ItemConfig>();
             if (item != null)
             {
                 PlayerInventory.Instance.TryAddItem(item);
-                return; // Salir después de intentar recoger el ítem
+                return;
             }
             // 4. INTENTAR INICIAR DIÁLOGO POR RADIO
             RadioDialogue radio = hit.collider.GetComponent<RadioDialogue>();
@@ -133,12 +124,14 @@ public class PlayerInteraction : MonoBehaviour
             if (radio != null)
             {
                 radio.StartDialogue();
-                return; // Importante: salir para no seguir buscando
+                return;
             }
             Debug.Log("No hay nada que interactuar aquí.");
         }
     }
-    private string GetHeldKeyCardID()
+
+
+private string GetHeldKeyCardID()
     {
         for (int i = 0; i < PlayerInventory.Instance.inventory.Length; i++)
         {
@@ -150,6 +143,7 @@ public class PlayerInteraction : MonoBehaviour
         }
         return string.Empty;
     }
+
     private void UseItemFromSlot(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= PlayerInventory.Instance.inventory.Length) return;
@@ -167,6 +161,7 @@ public class PlayerInteraction : MonoBehaviour
             }
         }
     }
+
     private void HandleItemAction(ItemTemplate itemTemplate, int slotIndex)
     {
         if (itemTemplate.itemType == ItemTemplate.ITEM_TYPE.Botiquin && playerMovement.currentHealth >= playerMovement.maxHealth)
@@ -184,6 +179,7 @@ public class PlayerInteraction : MonoBehaviour
             ConsumeItemEffect(itemTemplate, slotIndex);
         }
     }
+
     private void ConsumeItemEffect(ItemTemplate itemTemplate, int slotIndex)
     {
         bool shouldConsume = true;
@@ -208,6 +204,7 @@ public class PlayerInteraction : MonoBehaviour
             PlayerInventory.Instance.inventory_UI_Slots[slotIndex].ClearSlot(slotIndex);
         }
     }
+
     private IEnumerator UseItemWithDuration(ItemTemplate itemTemplate, int slotIndex)
     {
         isUsingItem = true;

@@ -9,6 +9,7 @@ TagManager:
   - EnemySpawnPoint
   - Door
   - SkyboxCamera
+  - Numeros
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - InteractableNumbers
   - 
   - 
   - 

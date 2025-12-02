@@ -3481,6 +3481,56 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5725000371507048362, guid: b2452a5c2cd649a4db9eebcd16f7b155, type: 3}
   m_PrefabInstance: {fileID: 92509042}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &97790575 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6471496338278676438, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+  m_PrefabInstance: {fileID: 244604202}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &97790579
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97790575}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.00023782653, y: 0.000050000082, z: 0.00048038468}
+  m_Center: {x: -0.0000039278757, y: -0.000025003754, z: 0.00035885614}
+--- !u!114 &97790580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97790575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e40d180dc0624c040a52ad03cdf0b973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  natashaComments:
+  - "La verdad es que jam\xE1s entend\xED por qu\xE9 est\xE1n esos numeros por toda
+    la nave."
+  - "Recuerda el plan: activa el generador primero. \xBFEs eso?"
+  - "Los numeros siempre los numeros... \xBFQu\xE9 significan?"
+  - "Los numeros parecen importantes, pero no s\xE9 por qu\xE9."
+  - "los numeros, por qu\xE9 siempre debe haber numeros..."
+  cooldown: 60
+  commentDisplayTime: 3
+  typingSpeed: 0.04
+  natashaCommentPanel: {fileID: 1283602738}
+  natashaCommentText: {fileID: 2099046504}
 --- !u!1 &100907886
 GameObject:
   m_ObjectHideFlags: 0
@@ -8704,6 +8754,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -90
       objectReference: {fileID: 0}
+    - target: {fileID: -3973107660126017756, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_Layer
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -3973107660126017756, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: -3556817346404478780, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_Layer
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -3556817346404478780, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: -1900978342067297754, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.275
@@ -8744,6 +8810,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Numbers
       objectReference: {fileID: 0}
+    - target: {fileID: 2238249416642749085, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_Layer
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 2238249416642749085, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: 5039687269024256309, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -8756,6 +8830,14 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 172f3e65158935346a16655c3d397409, type: 2}
+    - target: {fileID: 6471496338278676438, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_Layer
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6471496338278676438, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: -7118718547738887145, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
@@ -8831,7 +8913,31 @@ PrefabInstance:
     - {fileID: -1840680963563420374, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
     - {fileID: 2909334989756356583, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -3973107660126017756, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1577405789}
+    - targetCorrespondingSourceObject: {fileID: -3973107660126017756, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1577405790}
+    - targetCorrespondingSourceObject: {fileID: 6471496338278676438, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 97790579}
+    - targetCorrespondingSourceObject: {fileID: 6471496338278676438, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 97790580}
+    - targetCorrespondingSourceObject: {fileID: -3556817346404478780, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 659616340}
+    - targetCorrespondingSourceObject: {fileID: -3556817346404478780, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 659616341}
+    - targetCorrespondingSourceObject: {fileID: 2238249416642749085, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1414827610}
+    - targetCorrespondingSourceObject: {fileID: 2238249416642749085, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1414827611}
   m_SourcePrefab: {fileID: 100100000, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
 --- !u!1001 &250228199
 PrefabInstance:
@@ -11696,6 +11802,81 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5842856202905805191, guid: 51c2255d1df6126418b881e0edaa57ac, type: 3}
   m_PrefabInstance: {fileID: 363875012}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &364731657
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 364731658}
+  - component: {fileID: 364731660}
+  - component: {fileID: 364731659}
+  m_Layer: 5
+  m_Name: Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &364731658
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 364731657}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1283602739}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: -206.50897, y: 0}
+  m_SizeDelta: {x: 205.73999, y: 212.23}
+  m_Pivot: {x: 0, y: 0.5}
+--- !u!114 &364731659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 364731657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &364731660
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 364731657}
+  m_CullTransparentMesh: 1
 --- !u!1001 &364912862
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19491,6 +19672,56 @@ Transform:
   - {fileID: 832575519}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &659616336 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -3556817346404478780, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+  m_PrefabInstance: {fileID: 244604202}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &659616340
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659616336}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.00024258211, y: 0.000050000122, z: 0.0004887342}
+  m_Center: {x: 0.000007956909, y: -0.000024999097, z: 0.0003571472}
+--- !u!114 &659616341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659616336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e40d180dc0624c040a52ad03cdf0b973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  natashaComments:
+  - "La verdad es que jam\xE1s entend\xED por qu\xE9 est\xE1n esos numeros por toda
+    la nave."
+  - "Recuerda el plan: activa el generador primero. \xBFEs eso?"
+  - "Los numeros siempre los numeros... \xBFQu\xE9 significan?"
+  - "Los numeros parecen importantes, pero no s\xE9 por qu\xE9."
+  - "los numeros, por qu\xE9 siempre debe haber numeros..."
+  cooldown: 60
+  commentDisplayTime: 3
+  typingSpeed: 0.04
+  natashaCommentPanel: {fileID: 1283602738}
+  natashaCommentText: {fileID: 2099046504}
 --- !u!1 &661633758
 GameObject:
   m_ObjectHideFlags: 0
@@ -33054,6 +33285,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2026922189}
+  - {fileID: 1283602739}
   - {fileID: 1004377204}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -34763,11 +34995,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 34.2
+      value: 37.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.14459385
+      value: 0.7461928
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.x
@@ -34775,7 +35007,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.98949116
+      value: -0.66573
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.z
@@ -34787,7 +35019,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -196.628
+      value: -83.477
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -35030,6 +35262,83 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5725000371507048362, guid: b2452a5c2cd649a4db9eebcd16f7b155, type: 3}
   m_PrefabInstance: {fileID: 129831015}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1283602738
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1283602739}
+  - component: {fileID: 1283602741}
+  - component: {fileID: 1283602740}
+  m_Layer: 5
+  m_Name: PanelDialogoNatashaNumeros
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1283602739
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1283602738}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 364731658}
+  - {fileID: 2099046503}
+  m_Father: {fileID: 1194057570}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 1072, y: 82}
+  m_SizeDelta: {x: 1077.846, y: 212.22498}
+  m_Pivot: {x: 0.5, y: 0}
+--- !u!114 &1283602740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1283602738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.83525616, g: 0.83214664, b: 0.9433962, a: 0.392}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1283602741
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1283602738}
+  m_CullTransparentMesh: 1
 --- !u!1001 &1284219851
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38113,6 +38422,56 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1430841697005043554, guid: d324de115c4dff845bee7b7f166883c4, type: 3}
   m_PrefabInstance: {fileID: 364912862}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1414827606 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2238249416642749085, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+  m_PrefabInstance: {fileID: 244604202}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1414827610
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414827606}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.00025227078, y: 0.000050000017, z: 0.00047572577}
+  m_Center: {x: 0.0000036179877, y: -0.000024996272, z: 0.0003562163}
+--- !u!114 &1414827611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414827606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e40d180dc0624c040a52ad03cdf0b973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  natashaComments:
+  - "La verdad es que jam\xE1s entend\xED por qu\xE9 est\xE1n esos numeros por toda
+    la nave."
+  - "Recuerda el plan: activa el generador primero. \xBFEs eso?"
+  - "Los numeros siempre los numeros... \xBFQu\xE9 significan?"
+  - "Los numeros parecen importantes, pero no s\xE9 por qu\xE9."
+  - "los numeros, por qu\xE9 siempre debe haber numeros..."
+  cooldown: 60
+  commentDisplayTime: 3
+  typingSpeed: 0.04
+  natashaCommentPanel: {fileID: 1283602738}
+  natashaCommentText: {fileID: 2099046504}
 --- !u!1 &1416499498
 GameObject:
   m_ObjectHideFlags: 0
@@ -42908,6 +43267,56 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 71de158e9cc2e384f98947e4e60bdb74, type: 3}
   m_PrefabInstance: {fileID: 1569711169}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1577405785 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -3973107660126017756, guid: de9cf413bd0c7ed458628bdddb7f8381, type: 3}
+  m_PrefabInstance: {fileID: 244604202}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1577405789
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1577405785}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.00025410205, y: 0.00005000004, z: 0.00047758414}
+  m_Center: {x: 0.0000023991502, y: -0.000025003741, z: 0.00035528734}
+--- !u!114 &1577405790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1577405785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e40d180dc0624c040a52ad03cdf0b973, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  natashaComments:
+  - "La verdad es que jam\xE1s entend\xED por qu\xE9 est\xE1n esos numeros por toda
+    la nave."
+  - "Recuerda el plan: activa el generador primero. \xBFEs eso?"
+  - "Los numeros siempre los numeros... \xBFQu\xE9 significan?"
+  - "Los numeros parecen importantes, pero no s\xE9 por qu\xE9."
+  - "los numeros, por qu\xE9 siempre debe haber numeros..."
+  cooldown: 60
+  commentDisplayTime: 3
+  typingSpeed: 0.04
+  natashaCommentPanel: {fileID: 1283602738}
+  natashaCommentText: {fileID: 2099046504}
 --- !u!1001 &1578515797
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49610,9 +50019,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionDistance: 5
-  natashaCommentPanel: {fileID: 2026922188}
-  natashaCommentText: {fileID: 2109449951}
-  commentDisplayTime: 3
 --- !u!114 &1865817715
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56198,6 +56604,142 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2091829952}
+  m_CullTransparentMesh: 1
+--- !u!1 &2099046502
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2099046503}
+  - component: {fileID: 2099046505}
+  - component: {fileID: 2099046504}
+  m_Layer: 5
+  m_Name: Texto DIalogoNumeros
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2099046503
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099046502}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1283602739}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -1.09198, y: 1.611}
+  m_SizeDelta: {x: 1079.892, y: 158.499}
+  m_Pivot: {x: 0, y: 0}
+--- !u!114 &2099046504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099046502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: New Text
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 72
+  m_fontSizeBase: 36
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &2099046505
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099046502}
   m_CullTransparentMesh: 1
 --- !u!1 &2100772683 stripped
 GameObject:
