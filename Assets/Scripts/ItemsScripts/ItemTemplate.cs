@@ -3,8 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Item", menuName = "ScriptableObjects/Item")]
 public class ItemTemplate : ScriptableObject
 {
-    public string itemName;
-    public Color itemColor;
+    public Sprite itemSprite;
     public enum ITEM_TYPE
     {
         None,

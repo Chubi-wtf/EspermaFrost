@@ -16,15 +16,14 @@ public class Inventory_UI_Slot : MonoBehaviour
     // Cambiado de 'Item' a 'ItemConfig'
     public void SetSlot(ItemConfig itemToSet)
     {
-        slotImage.color = itemToSet.itemTemplate.itemColor;
-        slotText.text = itemToSet.itemTemplate.itemName;
+        slotImage.sprite = itemToSet.itemTemplate.itemSprite;
     }
 
 
     public void ClearSlot(int buttonIndex)
     {
-        slotImage.color = Color.white;
-        slotText.text = null;
+        slotImage.sprite = null;
+        gameObject.SetActive(false);
 
         if (PlayerInventory.Instance.inventory[buttonIndex] != null)
         {

@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7b9e15b3b4f42440abb9709e766a249, type: 3}
   m_Name: Adrenalina
   m_EditorClassIdentifier: 
-  itemName: Adrenalina
-  itemColor: {r: 1, g: 0.9554569, b: 0.3820755, a: 0}
+  itemSprite: {fileID: 21300000, guid: e1faf2af6490cc542a1927cb29e25e2f, type: 3}
   itemType: 3
   useDuration: 1
   healAmount: 0

@@ -37,10 +37,9 @@ public class PlayerInventory : MonoBehaviour
                 if (activateObjectsBySlot[i] != null)
                 {
                     activateObjectsBySlot[i].SetActive(true);
-                    Debug.Log("Activando objeto del slot: " + i);
                 }
 
-                Destroy(itemToAdd.gameObject);
+                    Destroy(itemToAdd.gameObject);
                 return;
             }
         }
