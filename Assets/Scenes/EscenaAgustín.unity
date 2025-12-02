@@ -1840,7 +1840,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -438.92, y: 212.12001}
+  m_AnchoredPosition: {x: -438.82, y: 162.22}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &44190322
@@ -1872,7 +1872,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -27640,7 +27640,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0.83525616, g: 0.83214664, b: 0.9433962, a: 0.392}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -34755,7 +34755,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -39.54
+      value: -129.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -34763,23 +34763,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 45.8
+      value: 33.168
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.3465379
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.93803596
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -34787,7 +34787,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 139.449
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -39268,29 +39268,29 @@ MonoBehaviour:
   lines:
   - speaker: Natasha
     text: "\xBFHola?, \xBFAlguien me escucha?"
-  - speaker: Carlos
+  - speaker: Yuri
     text: "\xA1Hola!, \xA1Te escucho!."
   - speaker: Natasha
     text: "\xA1CARLOS!, pens\xE9 que estabas muerto."
-  - speaker: Carlos
+  - speaker: Yuri
     text: "Yo tambi\xE9n cre\xED lo mismo, pero logr\xE9 entrar a una habitaci\xF3n
       ([Nombre de la habitaci\xF3n]) y cerrar la puerta. El monstruo sigue merodeando
       cerca de aqu\xED, en este mismo piso. \xBFQu\xE9 hay de los dem\xE1s?"
   - speaker: Natasha
     text: "\u2026"
-  - speaker: Carlos
+  - speaker: Yuri
     text: Ya veo...
   - speaker: Natasha
     text: "Carlos esc\xFAchame, tengo un plan para escapar de esa cosa, pero necesitar\xE9
       de tu ayuda."
-  - speaker: Carlos
+  - speaker: Yuri
     text: Te escucho.
   - speaker: Natasha
     text: "Para subir al segundo piso, donde estoy yo, primero debes activar el generador
       en tu piso. Esto encender\xE1 la computadora, que es el sistema de seguridad
       de la llave. Una vez encendida, tendr\xE1s que introducir un c\xF3digo para
       desbloquear la llave."
-  - speaker: Carlos
+  - speaker: Yuri
     text: Entendido.
   - speaker: Natasha
     text: "A\xFAn estoy descifrando el c\xF3digo, pero te contactar\xE9 nuevamente
@@ -47175,7 +47175,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -438.92, y: 212.12001}
+  m_AnchoredPosition: {x: -440.01, y: 162.23}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1748367783
@@ -47207,7 +47207,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -49630,6 +49630,10 @@ MonoBehaviour:
   - {fileID: 931703840}
   - {fileID: 661633763}
   - {fileID: 894420063}
+  activateObjectsBySlot:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!4 &1865817717 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
@@ -50155,8 +50159,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.10180664, y: -0.11114502}
-  m_SizeDelta: {x: 1077.8, y: 195.11}
+  m_AnchoredPosition: {x: -1.09198, y: 1.611}
+  m_SizeDelta: {x: 1079.892, y: 158.499}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1886295072
 MonoBehaviour:
@@ -50187,7 +50191,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -54556,7 +54560,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0.83525616, g: 0.83214664, b: 0.9433962, a: 0.392}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -56384,8 +56388,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.10180664, y: -0.11114502}
-  m_SizeDelta: {x: 1077.8, y: 195.11}
+  m_AnchoredPosition: {x: -1.09198, y: 1.611}
+  m_SizeDelta: {x: 1079.892, y: 158.499}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &2109449951
 MonoBehaviour:
@@ -56416,7 +56420,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
