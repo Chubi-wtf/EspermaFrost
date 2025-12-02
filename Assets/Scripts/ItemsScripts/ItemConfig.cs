@@ -7,9 +7,9 @@ public class ItemConfig : MonoBehaviour
 
     private void Start()
     {
-        if (itemTemplate != null && GetComponent<MeshRenderer>() != null)
-        {
-            GetComponent<MeshRenderer>().material.color = itemTemplate.itemColor;
-        }
+        //if (itemTemplate != null && GetComponent<MeshRenderer>() != null)
+        //{
+        //    GetComponent<MeshRenderer>().material.color = itemTemplate.item;
+        //}
     }
 }

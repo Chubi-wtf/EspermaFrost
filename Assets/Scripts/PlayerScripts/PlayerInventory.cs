@@ -1,5 +1,4 @@
 using UnityEngine;
-// using static UnityEditor.Progress; // Esta línea puede causar errores si no estás en el editor, mejor eliminarla
 
 public class PlayerInventory : MonoBehaviour
 {
@@ -7,6 +6,7 @@ public class PlayerInventory : MonoBehaviour
 
     public ItemTemplate[] inventory;
     public Inventory_UI_Slot[] inventory_UI_Slots;
+    public GameObject[] activateObjectsBySlot = new GameObject[3];
 
 
     private void Awake()
@@ -16,12 +16,9 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-        // inventory = new ItemTemplate[3]; //Antiguo
-        inventory = new ItemTemplate[1]; 
-
+        inventory = new ItemTemplate[3];
     }
 
-    // NUEVO: Método público llamado por PlayerInteraction.cs
     public void TryAddItem(ItemConfig itemToAdd)
     {
         AddItem(itemToAdd);
@@ -34,13 +31,18 @@ public class PlayerInventory : MonoBehaviour
             if (inventory[i] == null)
             {
                 inventory[i] = itemToAdd.itemTemplate;
+
                 inventory_UI_Slots[i].SetSlot(itemToAdd);
-                Destroy(itemToAdd.gameObject);
-                Debug.Log($"Ítem {itemToAdd.itemTemplate.itemName} recogido con éxito.");
-                return; // Salir después de añadir
+
+                if (activateObjectsBySlot[i] != null)
+                {
+                    activateObjectsBySlot[i].SetActive(true);
+                }
+
+                    Destroy(itemToAdd.gameObject);
+                return;
             }
         }
-        Debug.Log("Inventario lleno. No se puede recoger el ítem.");
     }
 
     public bool CanUseItem(int itemIndex)

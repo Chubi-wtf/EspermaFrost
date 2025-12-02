@@ -4,14 +4,14 @@ using UnityEngine.UI;
 public class Health_UI : MonoBehaviour
 {
     [Header("REFERENCIAS")]
-    public PlayerMovement player; // PlayerMovement del jugador
-    public Slider healthSlider;   // Slider de vida
-    public Image fillImage;       // Imagen del Fill del slider
+    public PlayerMovement player;
+    public Slider healthSlider, healthSlider2;  
+    public Image fillImage, fillImage2;       
 
     [Header("SPRITES SEGÚN VIDA")]
-    public Sprite healthySprite;   // Vida alta
-    public Sprite mediumSprite;    // Vida media
-    public Sprite lowSprite;       // Vida baja
+    public Sprite healthySprite, healthySprite2;  
+    public Sprite mediumSprite, mediumSprite2;    
+    public Sprite lowSprite, lowSprite2;       
 
     private void Start()
     {
@@ -19,6 +19,7 @@ public class Health_UI : MonoBehaviour
             Debug.LogError("HealthUI no tiene asignado el PlayerMovement.");
 
         healthSlider.maxValue = player.maxHealth;
+        healthSlider2.maxValue = player.maxHealth;
     }
 
     private void Update()
@@ -28,23 +29,25 @@ public class Health_UI : MonoBehaviour
 
     private void UpdateHealthUI()
     {
-        // Actualiza valor del slider
         healthSlider.value = player.currentHealth;
+        healthSlider2.value = player.currentHealth;
 
         float lifePercent = player.currentHealth / player.maxHealth;
 
-        // Cambia sprite según la vida
         if (lifePercent >= 0.66f)
         {
             fillImage.sprite = healthySprite;
+            fillImage2.sprite = healthySprite2;
         }
         else if (lifePercent >= 0.33f)
         {
             fillImage.sprite = mediumSprite;
+            fillImage2.sprite = mediumSprite2;
         }
         else
         {
             fillImage.sprite = lowSprite;
+            fillImage2.sprite = lowSprite2;
         }
     }
 }

@@ -191,7 +191,6 @@ public class PlayerInteraction : MonoBehaviour
     private IEnumerator UseItemWithDuration(ItemTemplate itemTemplate, int slotIndex)
     {
         isUsingItem = true;
-        Debug.Log($"Iniciando uso de {itemTemplate.itemName}. Tiempo: {itemTemplate.useDuration}s");
 
         yield return new WaitForSeconds(itemTemplate.useDuration);
 

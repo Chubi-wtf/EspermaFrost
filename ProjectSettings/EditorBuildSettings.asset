@@ -9,8 +9,11 @@ EditorBuildSettings:
     path: "Assets/Scenes/T\xEDtulo 1.unity"
     guid: dede0a422490ce4419f87f8d9ed3682f
   - enabled: 1
-    path: Assets/Scenes/Escena1.unity
-    guid: a67f9129798ad11439d91c2e16652dbb
+    path: Assets/Scenes/Escena 1.unity
+    guid: b8f9860ed17af0544a4a501beb42d687
+  - enabled: 1
+    path: Assets/Scenes/Escena2.unity
+    guid: f1f62e67843943b45b8c3d920ceb9ac6
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
