@@ -55895,7 +55895,6 @@ MonoBehaviour:
   staminaRegenRate: 10
   regenDelay: 1.5
   runCooldown: 2
-  darkness: {fileID: 313750636}
   knockbackForce: 15
   knockbackDuration: 0.15
   mouseSensitivity: 150
