@@ -36863,7 +36863,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -69.2
+      value: -42
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -36871,7 +36871,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.1
+      value: 61.252
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -51869,7 +51869,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 0}
+  m_NavMeshData: {fileID: 23800000, guid: 9da12f2f1135526498194561b32f8428, type: 2}
   m_BuildHeightMesh: 0
 --- !u!64 &1854621803
 MeshCollider:
@@ -52433,20 +52433,17 @@ MonoBehaviour:
   slowDuration: 2
   slowMultiplier: 0.5
   isSlowed: 0
+  crouchHeight: 1
+  crouchSpeedMultiplier: 0.5
+  crouchTransitionSpeed: 10
   noiseCollider: {fileID: 281940217}
   baseNoiseRadius: 5
   walkNoiseRadius: 10
   runNoiseRadius: 20
-  damageSoundClip: {fileID: 8300000, guid: 722a6f5a4acefc14aa703f5f8eff4d7a, type: 3}
-  walkingSoundClip: {fileID: 8300000, guid: 028d5406b2c4cc9498bf8e3915666631, type: 3}
-  runningSoundClip: {fileID: 8300000, guid: 75d20a748fcfe9a4bac9608a894d72cb, type: 3}
-  stepInterval: 9
-  playerAudioSource: {fileID: 1865817718}
   DeathCollision: {fileID: 1865817711}
   isPlayerCrouching: 0
   isRunning: 0
   isStaminaEmpty: 0
-  isWalking: 0
   canMove: 1
 --- !u!4 &1865817717 stripped
 Transform:
@@ -57094,7 +57091,7 @@ GameObject:
   - component: {fileID: 1997051922}
   - component: {fileID: 1997051921}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: TextoPuzzle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

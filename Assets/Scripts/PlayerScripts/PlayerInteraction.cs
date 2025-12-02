@@ -89,6 +89,18 @@ public class PlayerInteraction : MonoBehaviour
 
             Debug.Log("No hay nada que interactuar aquí.");
         }
+        // 4. INTENTAR INICIAR DIÁLOGO POR RADIO
+        RadioDialogue radio = hit.collider.GetComponent<RadioDialogue>();
+        if (radio == null)
+        {
+            radio = hit.collider.GetComponentInParent<RadioDialogue>();
+        }
+
+        if (radio != null)
+        {
+            radio.StartDialogue();
+            return; // Importante: salir para no seguir buscando
+        }
     }
 
     private string GetHeldKeyCardID()
