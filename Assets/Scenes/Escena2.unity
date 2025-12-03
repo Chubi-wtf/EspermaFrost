@@ -773,7 +773,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -1548,7 +1549,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_sharedMaterial: {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -5658,7 +5660,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -7553,6 +7556,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionDistance: 3
+  normalCrosshairGO: {fileID: 0}
+  interactCrosshairGO: {fileID: 0}
+  interactableLayers:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &365366312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7577,6 +7585,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  keyRing: []
 --- !u!114 &365366313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7598,14 +7607,23 @@ MonoBehaviour:
   regenDelay: 1.5
   runCooldown: 2
   darkness: {fileID: 0}
+  isPlayerCrouching: 0
+  isRunning: 0
+  isWalking: 0
+  isStaminaEmpty: 0
+  canMove: 1
   knockbackForce: 15
   knockbackDuration: 0.15
+  pushDuration: 0.3
   mouseSensitivity: 150
   movementSpeed: 5
   runSpeed: 10
   slowDuration: 2
   slowMultiplier: 0.5
   isSlowed: 0
+  crouchHeight: 1
+  crouchSpeedMultiplier: 0.5
+  crouchTransitionSpeed: 10
   noiseCollider: {fileID: 241445023}
   baseNoiseRadius: 5
   walkNoiseRadius: 10
@@ -7616,11 +7634,7 @@ MonoBehaviour:
   stepInterval: 9
   playerAudioSource: {fileID: 365366306}
   DeathCollision: {fileID: 365366308}
-  isPlayerCrouching: 0
-  isRunning: 0
-  isStaminaEmpty: 0
-  isWalking: 0
-  canMove: 1
+  animator: {fileID: 0}
 --- !u!4 &365366314 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
@@ -34648,7 +34662,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_sharedMaterial: {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
