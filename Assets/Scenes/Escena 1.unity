@@ -9500,9 +9500,9 @@ RectTransform:
   - {fileID: 1989998436}
   m_Father: {fileID: 1920103396}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 405, y: -10}
   m_SizeDelta: {x: 270, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &286890289
@@ -10902,7 +10902,6 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
-  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -11028,19 +11027,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &330585548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d071b2ddec78c94b8adc65c3c32c705, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  effectMaterial: {fileID: 2100000, guid: 41143bfe3cb26e4499499dbf7000fd1b, type: 2}
 --- !u!1 &334358962
 GameObject:
   m_ObjectHideFlags: 0
@@ -22236,9 +22222,9 @@ RectTransform:
   - {fileID: 1132741736}
   m_Father: {fileID: 1761356551}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 240, y: -50}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &694547477
@@ -23999,9 +23985,9 @@ RectTransform:
   - {fileID: 1674341933}
   m_Father: {fileID: 1761356551}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 30, y: -50}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &774385986
@@ -25094,9 +25080,9 @@ RectTransform:
   - {fileID: 1591122856}
   m_Father: {fileID: 1761356551}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 450, y: -50}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &821787687
@@ -39195,7 +39181,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -42
+      value: -69.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -39203,7 +39189,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 61.252
+      value: -2.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -55263,7 +55249,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 9da12f2f1135526498194561b32f8428, type: 2}
+  m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
 --- !u!64 &1854621803
 MeshCollider:
@@ -55865,11 +55851,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactionDistance: 3
-  normalCrosshairGO: {fileID: 0}
-  interactCrosshairGO: {fileID: 0}
-  interactableLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!114 &1865817715
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55894,7 +55875,6 @@ MonoBehaviour:
   - {fileID: 1674341932}
   - {fileID: 1132741735}
   - {fileID: 1591122855}
-  keyRing: []
 --- !u!114 &1865817716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55915,35 +55895,30 @@ MonoBehaviour:
   staminaRegenRate: 10
   regenDelay: 1.5
   runCooldown: 2
-  darkness: {fileID: 0}
-  isPlayerCrouching: 0
-  isRunning: 0
-  isWalking: 0
-  isStaminaEmpty: 0
-  canMove: 1
+  darkness: {fileID: 313750636}
   knockbackForce: 15
   knockbackDuration: 0.15
-  pushDuration: 0.3
   mouseSensitivity: 150
   movementSpeed: 5
   runSpeed: 10
   slowDuration: 2
   slowMultiplier: 0.5
   isSlowed: 0
-  crouchHeight: 1
-  crouchSpeedMultiplier: 0.5
-  crouchTransitionSpeed: 10
   noiseCollider: {fileID: 281940217}
   baseNoiseRadius: 5
   walkNoiseRadius: 10
   runNoiseRadius: 20
-  damageSoundClip: {fileID: 0}
-  walkingSoundClip: {fileID: 0}
-  runningSoundClip: {fileID: 0}
+  damageSoundClip: {fileID: 8300000, guid: 722a6f5a4acefc14aa703f5f8eff4d7a, type: 3}
+  walkingSoundClip: {fileID: 8300000, guid: 028d5406b2c4cc9498bf8e3915666631, type: 3}
+  runningSoundClip: {fileID: 8300000, guid: 75d20a748fcfe9a4bac9608a894d72cb, type: 3}
   stepInterval: 9
-  playerAudioSource: {fileID: 0}
+  playerAudioSource: {fileID: 1865817718}
   DeathCollision: {fileID: 1865817711}
-  animator: {fileID: 0}
+  isPlayerCrouching: 0
+  isRunning: 0
+  isStaminaEmpty: 0
+  isWalking: 0
+  canMove: 1
 --- !u!4 &1865817717 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ce5c1d9ef0ed6e140b00de074997313e, type: 3}
@@ -60848,7 +60823,7 @@ GameObject:
   - component: {fileID: 1997051922}
   - component: {fileID: 1997051921}
   m_Layer: 5
-  m_Name: TextoPuzzle
+  m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63708,9 +63683,9 @@ RectTransform:
   - {fileID: 1730608324}
   m_Father: {fileID: 1920103396}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 135, y: -10}
   m_SizeDelta: {x: 270, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2091053087
@@ -63956,16 +63931,8 @@ MonoBehaviour:
   proximityAttackRange: 1.5
   damageAmount: 25
   attackCooldown: 2
-  attackAnimationDuration: 1
-  collisionDamage: 10
-  collisionDamageCooldown: 1
-  hitsBeforeStop: 2
-  stunDuration: 2
-  pushForce: 10
   fuenteAudioPrincipal: {fileID: 2100772688}
   sonidoRugido: {fileID: 8300000, guid: bbd1936c2023d3241b01843d6463850f, type: 3}
-  sonidoAtaque: {fileID: 0}
-  sonidoRugidoGolpe: {fileID: 0}
   currentState: 0
 --- !u!195 &2100772685
 NavMeshAgent:

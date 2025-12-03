@@ -33564,27 +33564,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d85fc6a86d7bd244dbc3b5fa2e75aea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 1970650500}
-  patrolSpeed: 3
-  chaseSpeed: 5
   wanderRadius: 20
   wanderInterval: 5
-  hearingSensitivity: 1
-  searchRadius: 10
-  searchDuration: 4
+  player: {fileID: 1970650500}
+  patrolSpeed: 3
+  investigateSpeed: 6.5
   proximityAttackRange: 1.5
   damageAmount: 25
   attackCooldown: 2
-  attackAnimationDuration: 1
-  collisionDamage: 10
-  collisionDamageCooldown: 1
-  hitsBeforeStop: 2
-  stunDuration: 2
-  pushForce: 10
   fuenteAudioPrincipal: {fileID: 0}
+  sonidoPatrullaLoop: {fileID: 0}
   sonidoRugido: {fileID: 8300000, guid: a16f8cd95dff1e247a45a9444e53dcfa, type: 3}
-  sonidoAtaque: {fileID: 0}
-  sonidoRugidoGolpe: {fileID: 0}
+  fuenteAudioPasos: {fileID: 0}
+  sonidosPasos:
+  - {fileID: 8300000, guid: 837fdf1a9adc8c9409ecfeefd778249a, type: 3}
   currentState: 0
 --- !u!195 &1435670564
 NavMeshAgent:
@@ -45343,11 +45336,6 @@ MonoBehaviour:
   - {fileID: 931703840}
   - {fileID: 661633763}
   - {fileID: 894420063}
-  activateObjectsBySlot:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  keyRing: []
 --- !u!114 &1970650503
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45360,12 +45348,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58f242705a131b74faeab113a00068d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactionDistance: 3
-  normalCrosshairGO: {fileID: 0}
-  interactCrosshairGO: {fileID: 0}
-  interactableLayers:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!114 &1970650504
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45380,41 +45362,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   currentHealth: 0
-  maxStamina: 100
-  currentStamina: 0
-  staminaDrainRate: 15
-  staminaRegenRate: 10
-  regenDelay: 1.5
-  runCooldown: 2
-  darkness: {fileID: 0}
-  isPlayerCrouching: 0
-  isRunning: 0
-  isWalking: 0
-  isStaminaEmpty: 0
-  canMove: 1
   knockbackForce: 15
   knockbackDuration: 0.15
-  pushDuration: 0.3
   mouseSensitivity: 150
   movementSpeed: 5
   runSpeed: 10
   slowDuration: 2
   slowMultiplier: 0.5
   isSlowed: 0
-  crouchHeight: 1
-  crouchSpeedMultiplier: 0.5
-  crouchTransitionSpeed: 10
   noiseCollider: {fileID: 281940217}
   baseNoiseRadius: 5
   walkNoiseRadius: 10
   runNoiseRadius: 20
-  damageSoundClip: {fileID: 0}
-  walkingSoundClip: {fileID: 0}
-  runningSoundClip: {fileID: 0}
-  stepInterval: 9
-  playerAudioSource: {fileID: 0}
   DeathCollision: {fileID: 0}
-  animator: {fileID: 0}
 --- !u!1001 &1970905126
 PrefabInstance:
   m_ObjectHideFlags: 0
