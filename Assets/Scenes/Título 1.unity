@@ -365,6 +365,7 @@ GameObject:
   - component: {fileID: 99095559}
   - component: {fileID: 99095558}
   - component: {fileID: 99095557}
+  - component: {fileID: 99095560}
   m_Layer: 5
   m_Name: "Cr\xE9ditos"
   m_TagString: Untagged
@@ -452,6 +453,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 99095555}
   m_CullTransparentMesh: 1
+--- !u!114 &99095560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99095555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 785a6d47f1a9cea499e243f380e7a81a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interfaceManager: {fileID: 210205471}
+  fade: {fileID: 19698094}
 --- !u!1 &182041194
 GameObject:
   m_ObjectHideFlags: 0
@@ -2832,18 +2847,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Dale a un granjero semillas, y te dar\xE1 comida.\nDale a un m\xFAsico
-    una melod\xEDa, y te dar\xE1 m\xFAsica. \nDale a un soldado un enemigo, y te
-    dar\xE1 nada... \xC9l solo destruye... Mata...\r\n\n\r\nMe pregunto si Dios observa
-    los eventos que se desarrollan, cuando los hombres se revelan contra si mismos.
-    \nTengo miedo de que al morir, a Dios le importe las cosas que hice, pero tengo
-    m\xE1s miedo de que no le importe; que estar\xE1 ah\xED sentado, cort\xE1ndose
-    las u\xF1as y con apenas energ\xEDa para juzgarme. \n\n\nPero, \xBFY entonces
-    qu\xE9? \xBFQu\xE9 pasa si a los hombres no se les juzga como corresponde?\r\n\r\nLa
-    gente dice que le tema al infierno, pero, hay un punto en que has hecho tantas
-    atrocidades que si llegas al infierno, el diablo te juzgar\xE1 como un amigo...
-    Pero la verdad es: \n\nQue ya dej\xE9 de creer en algo...\n\n\n\n\nCr\xE9ditos:
-    Miki"
+  m_text: "Un juego hecho por:\nNoNameStudio\n\n\nArte General y Dise\xF1o de Interfaces:\nBenjam\xEDn
+    S\xE1nchez\n\nDise\xF1o de Niveles:\nIgnacio Gaete\nAgust\xEDn Castillo\nRicardo
+    Cornejo\n\nIAs y animaciones:\nAgust\xEDn Castillo\n\nDise\xF1o de Personajes:\nIgnacio
+    Gaete\n\nProgramaci\xF3n:\nTarek Shinya\nAgust\xEDn Castillo\n\nM\xFAsica y Efectos
+    de Sonido:\nIgnacio Gaete\n\nGracias especiales a:\nGemini\n\n\n\n\n\n \n\n\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_sharedMaterial: {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
@@ -2870,13 +2878,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 62
+  m_fontSize: 62.65
   m_fontSizeBase: 62
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 33
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
