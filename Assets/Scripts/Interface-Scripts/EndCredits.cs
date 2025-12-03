@@ -19,6 +19,7 @@ public class EndCredits : MonoBehaviour
             interfaceManager.BackFromCredits();
             interfaceManager.Button();
             fade.FadeIn();
+            CreditsEnd = false;
         }
     }
 
