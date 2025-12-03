@@ -2,25 +2,27 @@
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(Animator))]
 public class EnemyController : MonoBehaviour
 {
-    #region Configuración
+    #region Configuración
 
-    [Header("Referencias")]
+    [Header("Referencias")]
     public Transform player;
     private PlayerMovement playerScript;
+    private Animator animator;
 
     [Header("Movimiento")]
     public float patrolSpeed = 3.5f;
-    public float chaseSpeed = 5.0f; // Velocidad al perseguir Y buscar frenéticamente
-    public float wanderRadius = 20f;
+    public float chaseSpeed = 5.0f;
+    public float wanderRadius = 20f;
     public float wanderInterval = 5f;
 
     [Header("Sensores (Oído)")]
     [Tooltip("Multiplicador de audición. 1 = Normal.")]
     public float hearingSensitivity = 1.0f;
 
-    [Header("Búsqueda Frenética (NUEVO)")]
+    [Header("Búsqueda Frenética")]
     [Tooltip("Radio alrededor de tu última posición donde el enemigo correrá a buscar.")]
     public float searchRadius = 10f;
     [Tooltip("Tiempo que se queda esperando en el punto de búsqueda antes de rendirse.")]
@@ -31,61 +33,69 @@ public class EnemyController : MonoBehaviour
     public float damageAmount = 25f;
     public float attackCooldown = 2f;
     private float lastAttackTime = -99f;
+    [Tooltip("Duración de la animación de ataque en segundos")]
+    public float attackAnimationDuration = 1f;
+    private bool isAttacking = false;
 
     [Header("Audio (Opcional)")]
     public AudioSource fuenteAudioPrincipal;
     public AudioClip sonidoRugido;
+    public AudioClip sonidoAtaque;
 
-    [Header("Animación")] // Renombrado a Animación para claridad
-    private Animator animator;
-    // Parámetro para el Trigger de ataque (asumiendo que tienes uno)
-    [Tooltip("Nombre del Trigger para la animación de ataque.")]
-    public string attackTriggerName = "Attack";
-    // Usaremos un parámetro de velocidad para controlar Idle/Walk/Run
-    // Asumiendo que IsCrouching e IsMoving se controlarán implícitamente por Speed > 0
-    // Si necesitas IsCrouching, se controlaría con una lógica de estado adicional.
     #endregion
 
     #region Estado Interno
     public enum EnemyState
     {
-        PATROL, // Patrullando tranquilo
-        CHASE,  // Persiguiendo al jugador (Sabe dónde estás)
-        SEARCH  // Corriendo a buscarte a una zona cercana (No sabe dónde estás)
-    }
+        PATROL,
+        CHASE,
+        SEARCH
+    }
 
     public EnemyState currentState;
 
     private NavMeshAgent agent;
     private float stateTimer;
     private Vector3 lastKnownPosition;
-    private Vector3 searchTargetPosition; // A donde correrá a buscarte
-    #endregion
+    private Vector3 searchTargetPosition;
 
-    #region Métodos de Unity
+    // Parámetros del Animator (usando Float para Speed y Trigger para Ataque)
+    private readonly int speedHash = Animator.StringToHash("Speed");
+    private readonly int attackHash = Animator.StringToHash("Attack");
 
-    void Start()
+    // Control de animación anterior para evitar llamadas innecesarias
+    private float currentAnimSpeed = 0f;
+
+    #endregion
+
+    #region Métodos de Unity
+
+    void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
+
         currentState = EnemyState.PATROL;
         agent.speed = patrolSpeed;
 
-        // **INICIO DE CAMBIOS DE ANIMACIÓN**
-        animator = GetComponent<Animator>();
-        if (animator == null) Debug.LogError("Animator no encontrado en el objeto.");
-        // **FIN DE CAMBIOS DE ANIMACIÓN**
-
-        if (player != null) playerScript = player.GetComponent<PlayerMovement>();
+        if (player != null)
+            playerScript = player.GetComponent<PlayerMovement>();
         else if (PlayerMovement.Instance != null)
         {
             playerScript = PlayerMovement.Instance;
             player = PlayerMovement.Instance.transform;
         }
+
+        // Iniciar en Idle (Speed = 0)
+        UpdateAnimationSpeed(0f);
     }
 
     void Update()
     {
         if (playerScript == null || player == null) return;
+
+        // Si está atacando, no procesar otros estados
+        if (isAttacking) return;
 
         bool canHearNow = CheckIfCanHearPlayer();
 
@@ -103,30 +113,46 @@ public class EnemyController : MonoBehaviour
         }
 
         CheckProximityAttack();
-        // **ACTUALIZACIÓN DE ANIMACIÓN DE MOVIMIENTO (GLOBAL)**
-        UpdateMovementAnimation();
-        // **FIN DE CAMBIOS DE ANIMACIÓN**
-    }
-    #endregion
+    }
+    #endregion
 
-    #region Lógica de Sentidos
-    bool CheckIfCanHearPlayer()
+    #region Sistema de Animación
+
+    void UpdateAnimationSpeed(float speed)
+    {
+        // Solo actualizar si cambió significativamente
+        if (Mathf.Abs(currentAnimSpeed - speed) > 0.01f)
+        {
+            currentAnimSpeed = speed;
+            animator.SetFloat(speedHash, speed);
+        }
+    }
+
+    #endregion
+
+    #region Lógica de Sentidos
+    bool CheckIfCanHearPlayer()
     {
         float distance = Vector3.Distance(transform.position, player.position);
         float noiseRadius = playerScript.noiseCollider.radius;
         return distance <= (noiseRadius * hearingSensitivity);
     }
-    #endregion
+    #endregion
 
-    #region Comportamientos (Estados)
+    #region Comportamientos (Estados)
 
-    // --- PATRULLA ---
-    void HandlePatrol(bool canHearNow)
+    // --- PATRULLA ---
+    void HandlePatrol(bool canHearNow)
     {
         if (canHearNow) { StartChasing(); return; }
 
         agent.speed = patrolSpeed;
         stateTimer += Time.deltaTime;
+
+        // Speed basado en velocidad real del agente
+        // 0 = Idle, 0.5 = Walking, 1 = Run
+        float normalizedSpeed = agent.velocity.magnitude / chaseSpeed;
+        UpdateAnimationSpeed(Mathf.Clamp(normalizedSpeed, 0f, 0.5f));
 
         if (stateTimer >= wanderInterval || agent.remainingDistance < 0.5f)
         {
@@ -136,55 +162,53 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    // --- PERSECUCIÓN (Sabe dónde estás) ---
-    void HandleChase(bool canHearNow)
+    // --- PERSECUCIÓN (Sabe dónde estás) ---
+    void HandleChase(bool canHearNow)
     {
         if (canHearNow)
         {
-            // Te escucha: Actualiza destino constante y corre
-            agent.speed = chaseSpeed;
+            agent.speed = chaseSpeed;
             lastKnownPosition = player.position;
             agent.SetDestination(lastKnownPosition);
+
+            // Speed = 1 (Run)
+            UpdateAnimationSpeed(1f);
         }
         else
         {
-            // Te perdió. En vez de ir a donde estabas, calcula un punto random CERCA de donde estabas.
-            currentState = EnemyState.SEARCH;
-
-            // Calculamos un punto aleatorio alrededor de la última posición conocida
-            searchTargetPosition = RandomNavMeshPosition(lastKnownPosition, searchRadius);
-
+            currentState = EnemyState.SEARCH;
+            searchTargetPosition = RandomNavMeshPosition(lastKnownPosition, searchRadius);
             agent.SetDestination(searchTargetPosition);
-            agent.speed = chaseSpeed; // ¡SIGUE CORRIENDO!
+            agent.speed = chaseSpeed;
+            stateTimer = 0;
 
-            stateTimer = 0;
+            // Mantener Speed = 1 (Run)
+            UpdateAnimationSpeed(1f);
         }
     }
 
-    // --- BÚSQUEDA (Corre a ver si estás por ahí) ---
-    void HandleSearch(bool canHearNow)
+    // --- BÚSQUEDA (Corre a ver si estás por ahí) ---
+    void HandleSearch(bool canHearNow)
     {
-        // Si te vuelve a escuchar, cancela la búsqueda y persigue
-        if (canHearNow) { StartChasing(); return; }
+        if (canHearNow) { StartChasing(); return; }
 
-        // Mantiene la velocidad de correr mientras viaja al punto de búsqueda
-        if (agent.remainingDistance > 1.0f)
+        if (agent.remainingDistance > 1.0f)
         {
             agent.speed = chaseSpeed;
+            UpdateAnimationSpeed(1f); // Run
         }
         else
         {
-            // Llegó al punto random de búsqueda. Ahora se calma y mira.
-            if (!agent.pathPending)
+            if (!agent.pathPending)
             {
-                agent.speed = 0; // Se detiene para escuchar/mirar
+                agent.speed = 0;
+                UpdateAnimationSpeed(0f); // Idle
 
-                stateTimer += Time.deltaTime;
+                stateTimer += Time.deltaTime;
 
                 if (stateTimer >= searchDuration)
                 {
-                    // No te encontró, vuelve a patrullar
-                    currentState = EnemyState.PATROL;
+                    currentState = EnemyState.PATROL;
                     stateTimer = 0;
                 }
             }
@@ -197,63 +221,66 @@ public class EnemyController : MonoBehaviour
         {
             currentState = EnemyState.CHASE;
             agent.ResetPath();
+            UpdateAnimationSpeed(1f); // Run
+
             if (fuenteAudioPrincipal != null && sonidoRugido != null)
                 fuenteAudioPrincipal.PlayOneShot(sonidoRugido);
         }
     }
-    #endregion
+    #endregion
 
-    // --- NUEVA LÓGICA DE ANIMACIÓN ---
-    #region Animación
-
-    void UpdateMovementAnimation()
-    {
-        if (animator == null) return;
-
-        // La magnitud de la velocidad actual (Velocidad en el mundo real, no solo la meta del agente)
-        float currentSpeed = agent.velocity.magnitude;
-
-        // Si el agente está persiguiendo (CHASE) o buscando (SEARCH), el enemigo debería "correr"
-        // Si no está corriendo, usa la velocidad real para Walk/Idle (PATROL)
-        bool isRunning = currentState == EnemyState.CHASE || currentState == EnemyState.SEARCH;
-
-        // Usamos la velocidad para transiciones Idle/Walk/Run
-        animator.SetFloat("Speed", currentSpeed);
-
-        // Seteamos el bool IsRunning para las transiciones específicas de correr (si las tienes)
-        // Aunque Speed debería ser suficiente, incluimos IsRunning por si las transiciones lo usan.
-        animator.SetBool("IsRunning", isRunning);
-
-        // Seteamos IsMoving (Útil para saber si hay algún tipo de movimiento)
-        animator.SetBool("IsMoving", currentSpeed > 0.01f);
-
-        // NO seteamos IsCrouching aquí, ya que el enemigo no tiene esa lógica en este script.
-    }
-
+    #region Ataque
     void CheckProximityAttack()
     {
         if (Vector3.Distance(transform.position, player.position) < proximityAttackRange &&
-            Time.time > lastAttackTime + attackCooldown)
+            Time.time > lastAttackTime + attackCooldown &&
+            !isAttacking)
         {
-            // **ACTIVAR ANIMACIÓN DE ATAQUE**
-            if (animator != null && !string.IsNullOrEmpty(attackTriggerName))
-            {
-                animator.SetTrigger(attackTriggerName);
-            }
-            // **FIN DE CAMBIOS DE ANIMACIÓN**
-
-            // Lógica de daño
-            playerScript.TakeDamage(damageAmount, transform.position);
-            lastAttackTime = Time.time;
+            StartCoroutine(PerformAttack());
         }
     }
+
+    System.Collections.IEnumerator PerformAttack()
+    {
+        isAttacking = true;
+        agent.isStopped = true;
+
+        // Mirar hacia el jugador
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+        if (direction != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(direction);
+        }
+
+        // Speed a 0 y trigger de ataque
+        UpdateAnimationSpeed(0f);
+        animator.SetTrigger(attackHash);
+
+        // Reproducir sonido de ataque
+        if (fuenteAudioPrincipal != null && sonidoAtaque != null)
+            fuenteAudioPrincipal.PlayOneShot(sonidoAtaque);
+
+        // Esperar un momento antes de hacer el daño (para que coincida con la animación)
+        yield return new WaitForSeconds(attackAnimationDuration * 0.5f);
+
+        // Hacer daño si sigue cerca
+        if (Vector3.Distance(transform.position, player.position) < proximityAttackRange)
+        {
+            playerScript.TakeDamage(damageAmount, transform.position);
+        }
+
+        // Esperar a que termine la animación
+        yield return new WaitForSeconds(attackAnimationDuration * 0.5f);
+
+        lastAttackTime = Time.time;
+        isAttacking = false;
+        agent.isStopped = false;
+    }
     #endregion
-    // --- FIN DE NUEVA LÓGICA DE ANIMACIÓN ---
 
-
-    #region Utilidades
-
-    Vector3 RandomNavMeshPosition(Vector3 origin, float dist)
+    #region Utilidades
+    Vector3 RandomNavMeshPosition(Vector3 origin, float dist)
     {
         Vector3 randDir = Random.insideUnitSphere * dist;
         randDir += origin;
@@ -274,13 +301,15 @@ public class EnemyController : MonoBehaviour
         }
         if (currentState == EnemyState.SEARCH)
         {
-            // Dibuja el área donde está buscando
-            Gizmos.color = new Color(1, 0.5f, 0, 0.5f); // Naranja
-            Gizmos.DrawWireSphere(lastKnownPosition, searchRadius);
-            // Dibuja el punto exacto al que está corriendo
-            Gizmos.color = Color.red;
+            Gizmos.color = new Color(1, 0.5f, 0, 0.5f);
+            Gizmos.DrawWireSphere(lastKnownPosition, searchRadius);
+            Gizmos.color = Color.red;
             Gizmos.DrawSphere(searchTargetPosition, 0.5f);
         }
+
+        // Visualizar rango de ataque
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, proximityAttackRange);
     }
-    #endregion
+    #endregion
 }
