@@ -19,10 +19,14 @@ public class PlayerMovement : MonoBehaviour
     public float regenDelay = 1.5f;
     public float runCooldown = 2f;
 
+    [Header("EFECTO VISUAL DE ESTAMINA")]
+    public GameObject darkness;
+
     [Header("ESTADO DEL JUGADOR")]
     private Coroutine adrenalineCoroutine;
     public bool isPlayerCrouching = false;
     public bool isRunning = false;
+    public bool isWalking = false;
     public bool isStaminaEmpty = false;
     private float timeSinceLastRun = 0f;
     private bool isAdrenalineActive = false;
@@ -74,6 +78,21 @@ public class PlayerMovement : MonoBehaviour
     [Header("VARIABLES DE RUIDO")]
     public SphereCollider noiseCollider;
     public float baseNoiseRadius, walkNoiseRadius, runNoiseRadius;
+
+    #endregion
+
+    #region Variables de Audio
+
+    [Header("VARIABLES DE SONIDO")]
+    [SerializeField] public AudioClip damageSoundClip;
+    [SerializeField] public AudioClip walkingSoundClip;
+    [SerializeField] public AudioClip runningSoundClip;
+
+    [Header("STEP INTERVAL")]
+    public float stepInterval = 9f;
+    private float stepTimer = 0f;
+
+    [SerializeField] public AudioSource playerAudioSource;
 
     #endregion
 
@@ -131,12 +150,21 @@ public class PlayerMovement : MonoBehaviour
             noiseCollider.radius = baseNoiseRadius;
             noiseCollider.isTrigger = true;
         }
+
+        // Configuración de Audio
+        if (playerAudioSource == null)
+            playerAudioSource = GetComponent<AudioSource>();
+
+        // Configuración de Darkness
+        if (darkness != null)
+            darkness.SetActive(false);
     }
 
     private void Update()
     {
         Movement();
         HandleStamina();
+        HandleAudioFootsteps();
 
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
@@ -173,6 +201,9 @@ public class PlayerMovement : MonoBehaviour
 
     #region Sistema de Animación
 
+    /// <summary>
+    /// Actualiza los parámetros del Animator según el estado del jugador
+    /// </summary>
     void UpdateAnimations()
     {
         if (animator == null) return;
@@ -194,8 +225,57 @@ public class PlayerMovement : MonoBehaviour
 
     #endregion
 
+    #region Sistema de Audio
+
+    /// <summary>
+    /// Maneja el audio de pasos (caminar y correr)
+    /// </summary>
+    private void HandleAudioFootsteps()
+    {
+        if (playerAudioSource == null) return;
+
+        bool isMoving = (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0);
+
+        // CORRIENDO
+        if (isRunning && isMoving)
+        {
+            if (!playerAudioSource.isPlaying || playerAudioSource.clip != runningSoundClip)
+            {
+                playerAudioSource.clip = runningSoundClip;
+                playerAudioSource.loop = true;
+                playerAudioSource.Play();
+            }
+            isWalking = false;
+        }
+        // CAMINANDO
+        else if (isMoving && !isRunning)
+        {
+            if (!isWalking)
+            {
+                isWalking = true;
+                playerAudioSource.clip = walkingSoundClip;
+                playerAudioSource.loop = true;
+                playerAudioSource.Play();
+            }
+        }
+        // QUIETO
+        else
+        {
+            if (isWalking || playerAudioSource.isPlaying)
+            {
+                isWalking = false;
+                playerAudioSource.Stop();
+            }
+        }
+    }
+
+    #endregion
+
     #region Sistema de Stamina
 
+    /// <summary>
+    /// Maneja el consumo y regeneración de estamina
+    /// </summary>
     private void HandleStamina()
     {
         if (isAdrenalineActive)
@@ -217,6 +297,9 @@ public class PlayerMovement : MonoBehaviour
                 isRunning = false;
                 timeSinceLastRun = -runCooldown;
                 Debug.Log("¡Estamina agotada!");
+
+                if (darkness != null)
+                    darkness.SetActive(true);
             }
         }
         else if (currentStamina < maxStamina)
@@ -226,9 +309,13 @@ public class PlayerMovement : MonoBehaviour
             {
                 currentStamina += staminaRegenRate * Time.deltaTime;
                 currentStamina = Mathf.Min(currentStamina, maxStamina);
+
                 if (currentStamina > 0f && timeSinceLastRun >= runCooldown)
                 {
                     isStaminaEmpty = false;
+
+                    if (darkness != null)
+                        darkness.SetActive(false);
                 }
             }
         }
@@ -238,22 +325,28 @@ public class PlayerMovement : MonoBehaviour
 
     #region Sistema de Ruido
 
+    /// <summary>
+    /// Actualiza el radio del collider de ruido según el estado del jugador
+    /// </summary>
     private void UpdateNoiseRadius(float currentSpeed)
     {
         if (noiseCollider == null) return;
 
+        // Agachado = sin ruido
         if (isPlayerCrouching)
         {
             noiseCollider.radius = 0f;
             return;
         }
 
+        // Quieto = ruido base
         if (Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0)
         {
             noiseCollider.radius = baseNoiseRadius;
             return;
         }
 
+        // Corriendo vs Caminando
         if (currentSpeed == runSpeed)
             noiseCollider.radius = runNoiseRadius;
         else
@@ -264,6 +357,9 @@ public class PlayerMovement : MonoBehaviour
 
     #region Sistema de Movimiento
 
+    /// <summary>
+    /// Maneja el movimiento del jugador y la rotación de la cámara
+    /// </summary>
     private void Movement()
     {
         if (!canMove) return;
@@ -310,6 +406,9 @@ public class PlayerMovement : MonoBehaviour
 
     #region Sistema de Agachado
 
+    /// <summary>
+    /// Alterna entre estar agachado y de pie
+    /// </summary>
     private void ToggleCrouch()
     {
         isPlayerCrouching = !isPlayerCrouching;
@@ -318,6 +417,9 @@ public class PlayerMovement : MonoBehaviour
         crouchCoroutine = StartCoroutine(SmoothCrouch());
     }
 
+    /// <summary>
+    /// Transición suave al agacharse o levantarse
+    /// </summary>
     private IEnumerator SmoothCrouch()
     {
         float targetHeight = isPlayerCrouching ? crouchHeight : originalHeight;
@@ -352,12 +454,21 @@ public class PlayerMovement : MonoBehaviour
 
     #region Sistema de Daño y Knockback
 
+    /// <summary>
+    /// Aplica daño al jugador y activa efectos secundarios
+    /// </summary>
     public void TakeDamage(float damageAmount, Vector3 attackerPosition)
     {
         currentHealth -= damageAmount;
         currentHealth = Mathf.Max(currentHealth, 0f);
 
         Debug.Log("Vida actual: " + currentHealth);
+
+        // Reproducir sonido de daño
+        if (playerAudioSource != null && damageSoundClip != null)
+        {
+            playerAudioSource.PlayOneShot(damageSoundClip);
+        }
 
         if (currentHealth <= 0) Die();
         else
@@ -367,6 +478,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Aplica empuje en dirección opuesta al atacante
+    /// </summary>
     private void ApplyKnockback(Vector3 attackerPosition)
     {
         Vector3 knockbackDirection = transform.position - attackerPosition;
@@ -412,6 +526,9 @@ public class PlayerMovement : MonoBehaviour
 
     #region Sistema de Efectos
 
+    /// <summary>
+    /// Aplica efecto de reducción de velocidad temporal
+    /// </summary>
     public void ApplySlowEffect()
     {
         if (isSlowed) StopCoroutine("SlowDown");
@@ -433,22 +550,39 @@ public class PlayerMovement : MonoBehaviour
 
     #region Métodos Públicos de Utilidad
 
+    /// <summary>
+    /// Cura al jugador y devuelve la cantidad efectiva curada
+    /// </summary>
     public float Heal(float amount)
     {
         float startHealth = currentHealth;
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-        return currentHealth - startHealth;
+        float actualHealed = currentHealth - startHealth;
+
+        if (actualHealed > 0)
+        {
+            Debug.Log($"[Botiquín] Curado {actualHealed} de vida. Salud actual: {currentHealth}");
+        }
+
+        return actualHealed;
     }
 
+    /// <summary>
+    /// Añade estamina al jugador
+    /// </summary>
     public void AddStamina(float amount)
     {
         if (currentStamina < maxStamina)
         {
             currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
             isStaminaEmpty = false;
+            Debug.Log($"[Consumible] Recargado {amount} de estamina.");
         }
     }
 
+    /// <summary>
+    /// Activa el efecto de adrenalina (estamina infinita temporal)
+    /// </summary>
     public void ActivateAdrenaline(float duration)
     {
         if (adrenalineCoroutine != null) StopCoroutine(adrenalineCoroutine);
@@ -459,18 +593,26 @@ public class PlayerMovement : MonoBehaviour
     {
         isAdrenalineActive = true;
         isStaminaEmpty = false;
+        Debug.Log($"Adrenalina activada. Estamina infinita por {duration} segundos.");
+
         yield return new WaitForSeconds(duration);
+
         isAdrenalineActive = false;
+        Debug.Log("Adrenalina agotada.");
     }
 
     #endregion
 
     #region Muerte
 
+    /// <summary>
+    /// Maneja la muerte del jugador
+    /// </summary>
     private void Die()
     {
         Debug.Log("¡El jugador ha muerto!");
         this.enabled = false;
+
 #if UNITY_6000_0_OR_NEWER
         rb.linearVelocity = Vector3.zero;
 #else

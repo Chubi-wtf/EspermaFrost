@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
@@ -8,7 +9,11 @@ public class PlayerInventory : MonoBehaviour
     public Inventory_UI_Slot[] inventory_UI_Slots;
     public GameObject[] activateObjectsBySlot = new GameObject[3];
 
-
+    public List<string> keyRing = new List<string>();
+    public void AddKey(string keyID)
+    {
+        if (!keyRing.Contains(keyID)) keyRing.Add(keyID);
+    }
     private void Awake()
     {
         Instance = this;

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -9,6 +10,11 @@ public class PlayerInteraction : MonoBehaviour
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     [Tooltip("Distancia máxima para interactuar con objetos")]
     public float interactionDistance = 3f;
+
+    [Header("CONFIGURACIÓN CROSSHAIR")]
+    public GameObject normalCrosshairGO;
+    public GameObject interactCrosshairGO;
+    public LayerMask interactableLayers;
 
     #endregion
 
@@ -30,6 +36,13 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        // Inicializar crosshairs
+        if (normalCrosshairGO != null) normalCrosshairGO.SetActive(true);
+        if (interactCrosshairGO != null) interactCrosshairGO.SetActive(false);
+    }
+
     private void Update()
     {
         Transform cameraTransform = playerMovement.GetComponentInChildren<Camera>()?.transform;
@@ -38,6 +51,9 @@ public class PlayerInteraction : MonoBehaviour
         if (cameraTransform != null)
         {
             Debug.DrawRay(cameraTransform.position, cameraTransform.forward * interactionDistance, Color.red);
+
+            // Actualizar crosshair dinámico
+            HandleCrosshairVisuals(cameraTransform);
         }
 
         // Comprobar objetos comentables (cada frame)
@@ -53,6 +69,44 @@ public class PlayerInteraction : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))
         {
             HandleInteraction(cameraTransform);
+        }
+    }
+
+    #endregion
+
+    #region Sistema de Crosshair Dinámico
+
+    /// <summary>
+    /// Cambia el crosshair según si hay un objeto interactuable en la mira
+    /// </summary>
+    private void HandleCrosshairVisuals(Transform camTransform)
+    {
+        if (normalCrosshairGO == null || interactCrosshairGO == null) return;
+
+        RaycastHit hit;
+        bool isInteractable = Physics.Raycast(
+            camTransform.position,
+            camTransform.forward,
+            out hit,
+            interactionDistance,
+            interactableLayers
+        );
+
+        if (isInteractable)
+        {
+            if (!interactCrosshairGO.activeSelf)
+            {
+                normalCrosshairGO.SetActive(false);
+                interactCrosshairGO.SetActive(true);
+            }
+        }
+        else
+        {
+            if (!normalCrosshairGO.activeSelf)
+            {
+                normalCrosshairGO.SetActive(true);
+                interactCrosshairGO.SetActive(false);
+            }
         }
     }
 
@@ -109,10 +163,10 @@ public class PlayerInteraction : MonoBehaviour
         // Prioridad 2: RADIO DIALOGUE
         if (TryInteractRadio(hit)) return;
 
-        // Prioridad 3: PUERTA
+        // Prioridad 3: PUERTA (con sistema de llavero)
         if (TryInteractDoor(hit)) return;
 
-        // Prioridad 4: RECOGER ÍTEM
+        // Prioridad 4: RECOGER ÍTEM (con llavero automático)
         if (TryPickupItem(hit)) return;
 
         Debug.Log("No hay nada interactuable aquí.");
@@ -159,7 +213,7 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    /// Intenta interactuar con una Puerta
+    /// Intenta interactuar con una Puerta usando el sistema de llavero
     /// </summary>
     private bool TryInteractDoor(RaycastHit hit)
     {
@@ -167,16 +221,16 @@ public class PlayerInteraction : MonoBehaviour
 
         if (door != null)
         {
-            string keyID = GetHeldKeyCardID();
-            bool success = door.InteractDoor(keyID);
-
-            if (!success)
+            // SISTEMA DE LLAVERO: Intentar con todas las llaves disponibles
+            if (TryOpenDoorWithKeyRing(door))
             {
-                Debug.Log("Puerta bloqueada o sin KeyCard adecuada.");
+                Debug.Log("¡Puerta abierta con una llave del llavero!");
             }
             else
             {
-                Debug.Log("Puerta interactuada correctamente.");
+                // Si no se pudo abrir, reproducir sonido de bloqueado
+                door.InteractDoor("");
+                Debug.Log("Está cerrada y no tienes la llave correcta.");
             }
             return true;
         }
@@ -184,7 +238,26 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     /// <summary>
-    /// Intenta recoger un ítem del suelo
+    /// Prueba todas las llaves del llavero en la puerta
+    /// </summary>
+    private bool TryOpenDoorWithKeyRing(DoorController door)
+    {
+        List<string> myKeys = PlayerInventory.Instance.keyRing;
+
+        foreach (string keyID in myKeys)
+        {
+            bool opened = door.InteractDoor(keyID);
+            if (opened)
+            {
+                return true; // Llave correcta encontrada
+            }
+        }
+
+        return false; // Ninguna llave funcionó
+    }
+
+    /// <summary>
+    /// Intenta recoger un ítem del suelo (con sistema de llavero automático)
     /// </summary>
     private bool TryPickupItem(RaycastHit hit)
     {
@@ -192,8 +265,20 @@ public class PlayerInteraction : MonoBehaviour
 
         if (item != null)
         {
-            PlayerInventory.Instance.TryAddItem(item);
-            Debug.Log("Ítem recogido.");
+            // Verificar si es una KeyCard
+            if (item.itemTemplate.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
+            {
+                // Las llaves van al llavero permanente (no ocupan slots)
+                PlayerInventory.Instance.AddKey(item.itemTemplate.keyCardID);
+                Destroy(item.gameObject);
+                Debug.Log("Llave recogida y guardada en el llavero permanente.");
+            }
+            else
+            {
+                // Ítems normales van al inventario
+                PlayerInventory.Instance.TryAddItem(item);
+                Debug.Log("Ítem recogido.");
+            }
             return true;
         }
         return false;
@@ -222,10 +307,10 @@ public class PlayerInteraction : MonoBehaviour
 
         if (!PlayerInventory.Instance.CanUseItem(slotIndex)) return;
 
-        // Las KeyCards no se usan así
+        // Las KeyCards ahora están en el llavero, no deberían llegar aquí
         if (itemToUse.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
         {
-            Debug.Log("Las KeyCards se usan con la tecla de Interacción ('E') cerca de una puerta.");
+            Debug.Log("Las KeyCards se usan automáticamente con la tecla 'E' cerca de una puerta.");
             return;
         }
 
@@ -293,26 +378,6 @@ public class PlayerInteraction : MonoBehaviour
         }
 
         isUsingItem = false;
-    }
-
-    #endregion
-
-    #region Métodos de Utilidad
-
-    /// <summary>
-    /// Obtiene el ID de la KeyCard que está en el inventario
-    /// </summary>
-    private string GetHeldKeyCardID()
-    {
-        for (int i = 0; i < PlayerInventory.Instance.inventory.Length; i++)
-        {
-            ItemTemplate item = PlayerInventory.Instance.inventory[i];
-            if (item != null && item.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
-            {
-                return item.keyCardID;
-            }
-        }
-        return string.Empty;
     }
 
     #endregion
