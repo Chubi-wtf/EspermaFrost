@@ -11,7 +11,7 @@ public class PauseManager : MonoBehaviour
 
 
     private bool isPause = false;
-    private bool config = false;
+    //private bool config = false;
 
     void Start()
     {

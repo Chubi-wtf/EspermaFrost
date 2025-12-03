@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class FadeOutUI : MonoBehaviour
@@ -38,4 +39,3 @@ public class FadeOutUI : MonoBehaviour
             gameObject.SetActive(false);
     }
 }
-
