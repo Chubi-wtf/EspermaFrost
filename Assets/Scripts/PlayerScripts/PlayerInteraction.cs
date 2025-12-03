@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic; // Necesario para usar Listas
 using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
@@ -9,6 +10,10 @@ public class PlayerInteraction : MonoBehaviour
     [Header("CONFIGURACIÓN DE INTERACCIÓN")]
     public float interactionDistance = 3f;
 
+    [Header("CONFIGURACIÓN CROSSHAIR")]
+    public GameObject normalCrosshairGO;
+    public GameObject interactCrosshairGO;
+    public LayerMask interactableLayers;
 
     private void Awake()
     {
@@ -19,28 +24,56 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (normalCrosshairGO != null) normalCrosshairGO.SetActive(true);
+        if (interactCrosshairGO != null) interactCrosshairGO.SetActive(false);
+    }
+
     private void Update()
     {
-        // Obtener la Transform de la cámara para el Raycast
         Transform cameraTransform = playerMovement.GetComponentInChildren<Camera>()?.transform;
 
-        // Dibujar el Raycast para depuración
         if (cameraTransform != null)
         {
             Debug.DrawRay(cameraTransform.position, cameraTransform.forward * interactionDistance, Color.red);
+            HandleCrosshairVisuals(cameraTransform);
         }
 
         if (isUsingItem) return;
 
-        // Lógica de uso de ítems consumibles (1, 2, 3)
         if (Input.GetKeyDown(KeyCode.Alpha1)) UseItemFromSlot(0);
         if (Input.GetKeyDown(KeyCode.Alpha2)) UseItemFromSlot(1);
         if (Input.GetKeyDown(KeyCode.Alpha3)) UseItemFromSlot(2);
 
-        // Lógica de INTERACCIÓN (Puertas y Recogida de Ítems)
         if (Input.GetKeyDown(KeyCode.E))
         {
-            HandleInteraction(); // Llamamos al nuevo método unificado
+            HandleInteraction();
+        }
+    }
+
+    private void HandleCrosshairVisuals(Transform camTransform)
+    {
+        if (normalCrosshairGO == null || interactCrosshairGO == null) return;
+
+        RaycastHit hit;
+        bool isInteractable = Physics.Raycast(camTransform.position, camTransform.forward, out hit, interactionDistance, interactableLayers);
+
+        if (isInteractable)
+        {
+            if (!interactCrosshairGO.activeSelf)
+            {
+                normalCrosshairGO.SetActive(false);
+                interactCrosshairGO.SetActive(true);
+            }
+        }
+        else
+        {
+            if (!normalCrosshairGO.activeSelf)
+            {
+                normalCrosshairGO.SetActive(true);
+                interactCrosshairGO.SetActive(false);
+            }
         }
     }
 
@@ -51,79 +84,91 @@ public class PlayerInteraction : MonoBehaviour
 
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, interactionDistance))
         {
-            // 1. INTENTAR INTERACTUAR CON TERMINAL
+            // 1. TERMINAL
             TerminalController terminal = hit.collider.GetComponent<TerminalController>();
-            if (terminal == null)
-            {
-                // Busca en el padre, ya que el collider está en el hijo
-                terminal = hit.collider.GetComponentInParent<TerminalController>();
-            }
+            if (terminal == null) terminal = hit.collider.GetComponentInParent<TerminalController>();
 
             if (terminal != null)
             {
                 terminal.ActivateTerminal();
-                return; // Salir después de activar la terminal
+                return;
             }
 
-            // 2. INTENTAR INTERACTUAR CON PUERTA
+            // 2. PUERTA [MODIFICADO PARA USAR EL LLAVERO]
             DoorController door = hit.collider.GetComponent<DoorController>();
             if (door != null)
             {
-                string keyID = GetHeldKeyCardID();
-                bool success = door.InteractDoor(keyID);
-
-                if (!success)
+                // Intentamos abrir la puerta con CUALQUIERA de las llaves que tengamos en el llavero
+                if (TryOpenDoorWithKeyRing(door))
                 {
-                    Debug.Log("Puerta bloqueada o sin KeyCard adecuada.");
+                    Debug.Log("¡Puerta abierta con una llave del llavero!");
                 }
-                return; // Salir después de intentar la interacción con la puerta
+                else
+                {
+                    // Si llegamos aquí, probamos todas las llaves y ninguna sirvió (o no tenemos llaves)
+                    // Llamamos a interact con string vacío para que la puerta haga su sonido de "Bloqueado"
+                    door.InteractDoor("");
+                    Debug.Log("Está cerrada y no tienes la llave correcta.");
+                }
+                return;
             }
 
-            // 3. INTENTAR RECOGER UN ÍTEM (Botiquín, Adrenalina, KeyCard, etc.)
+            // 3. RECOGER ÍTEM [MODIFICADO]
             ItemConfig item = hit.collider.GetComponent<ItemConfig>();
             if (item != null)
             {
-                PlayerInventory.Instance.TryAddItem(item);
-                return; // Salir después de intentar recoger el ítem
-            }
+                // [NUEVO] Verificamos si es una llave antes de meterla al inventario
+                if (item.itemTemplate.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
+                {
+                    // Es una llave: La mandamos al "Llavero" invisible
+                    PlayerInventory.Instance.AddKey(item.itemTemplate.keyCardID);
 
-            Debug.Log("No hay nada que interactuar aquí.");
+                    // Destruimos el objeto del mundo porque ya lo "tenemos"
+                    Destroy(item.gameObject);
+                    Debug.Log("Llave recogida y guardada en el llavero permanente.");
+                }
+                else
+                {
+                    // No es llave (es poción, arma, etc): Va al inventario normal
+                    PlayerInventory.Instance.TryAddItem(item);
+                }
+                return;
+            }
         }
     }
 
-    private string GetHeldKeyCardID()
+    // [NUEVO] Función inteligente que prueba tus llaves en la puerta
+    private bool TryOpenDoorWithKeyRing(DoorController door)
     {
-        for (int i = 0; i < PlayerInventory.Instance.inventory.Length; i++)
-        {
-            ItemTemplate item = PlayerInventory.Instance.inventory[i];
+        // Accedemos a la lista 'keyRing' que creaste en el PlayerInventory
+        List<string> myKeys = PlayerInventory.Instance.keyRing;
 
-            if (item != null && item.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
+        // Probamos cada llave que tenemos guardada
+        foreach (string keyID in myKeys)
+        {
+            // Le preguntamos a la puerta: "¿Te abres con esta llave?"
+            bool opened = door.InteractDoor(keyID);
+
+            if (opened)
             {
-                return item.keyCardID;
+                return true; // ¡Sí abrió! Dejamos de buscar
             }
         }
-        return string.Empty;
+
+        return false; // Probamos todas y ninguna funcionó
     }
 
+    // --- EL RESTO DE TUS MÉTODOS DE INVENTARIO SIGUEN IGUAL ---
 
     private void UseItemFromSlot(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= PlayerInventory.Instance.inventory.Length) return;
-
         ItemTemplate itemToUse = PlayerInventory.Instance.inventory[slotIndex];
 
-        if (itemToUse != null)
+        if (itemToUse != null && PlayerInventory.Instance.CanUseItem(slotIndex))
         {
-            if (PlayerInventory.Instance.CanUseItem(slotIndex))
-            {
-                if (itemToUse.itemType == ItemTemplate.ITEM_TYPE.KeyCard)
-                {
-                    Debug.Log("Las KeyCards se usan con la tecla de Interacción ('E') cerca de una puerta.");
-                    return;
-                }
-
-                HandleItemAction(itemToUse, slotIndex);
-            }
+            // Ya no necesitamos validar KeyCard aquí porque nunca llegarán a los slots
+            HandleItemAction(itemToUse, slotIndex);
         }
     }
 
@@ -131,19 +176,12 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (itemTemplate.itemType == ItemTemplate.ITEM_TYPE.Botiquin && playerMovement.currentHealth >= playerMovement.maxHealth)
         {
-            Debug.Log("Vida al máximo. No se puede usar el Botiquín.");
+            Debug.Log("Vida al máximo.");
             return;
         }
 
-        if (itemTemplate.useDuration > 0)
-        {
-            StartCoroutine(UseItemWithDuration(itemTemplate, slotIndex));
-            return;
-        }
-        else
-        {
-            ConsumeItemEffect(itemTemplate, slotIndex);
-        }
+        if (itemTemplate.useDuration > 0) StartCoroutine(UseItemWithDuration(itemTemplate, slotIndex));
+        else ConsumeItemEffect(itemTemplate, slotIndex);
     }
 
     private void ConsumeItemEffect(ItemTemplate itemTemplate, int slotIndex)
@@ -153,19 +191,10 @@ public class PlayerInteraction : MonoBehaviour
         switch (itemTemplate.itemType)
         {
             case ItemTemplate.ITEM_TYPE.Botiquin:
-                float healed = playerMovement.Heal(itemTemplate.healAmount);
-                if (healed <= 0)
-                {
-                    Debug.Log("Botiquín usado pero no curó. Slot no se vacía.");
-                    shouldConsume = false;
-                }
+                if (playerMovement.Heal(itemTemplate.healAmount) <= 0) shouldConsume = false;
                 break;
-
             case ItemTemplate.ITEM_TYPE.Adrenalina:
                 playerMovement.ActivateAdrenaline(itemTemplate.adrenalineDuration);
-                break;
-
-            default:
                 break;
         }
 
@@ -175,18 +204,11 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-
     private IEnumerator UseItemWithDuration(ItemTemplate itemTemplate, int slotIndex)
     {
         isUsingItem = true;
-
         yield return new WaitForSeconds(itemTemplate.useDuration);
-
-        if (playerMovement != null)
-        {
-            ConsumeItemEffect(itemTemplate, slotIndex);
-        }
-
+        if (playerMovement != null) ConsumeItemEffect(itemTemplate, slotIndex);
         isUsingItem = false;
     }
 }

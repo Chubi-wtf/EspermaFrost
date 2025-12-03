@@ -38,20 +38,16 @@ public class PlayerMovement : MonoBehaviour
     public SphereCollider noiseCollider;
     public float baseNoiseRadius, walkNoiseRadius, runNoiseRadius;
 
-    [Header("Variables Sonido")]
+    [Header("VARIABLES DE SONIDO")]
     [SerializeField] public AudioClip damageSoundClip;
     [SerializeField] public AudioClip walkingSoundClip;
     [SerializeField] public AudioClip runningSoundClip;
 
-    //Variables para frencuencia de sonidos de caminar:
+    [Header("STEP INTERVAL")]
     public float stepInterval = 9f;
     private float stepTimer = 0f;
 
-
     [SerializeField] public AudioSource playerAudioSource;
-
-
-
 
     [Header("DEATH COLLIDER")]
     public CapsuleCollider DeathCollision;
