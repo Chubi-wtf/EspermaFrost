@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -37,10 +38,27 @@ public class EnemyController : MonoBehaviour
     public float attackAnimationDuration = 1f;
     private bool isAttacking = false;
 
+    [Header("Daño por Colisión")]
+    [Tooltip("Daño que hace el enemigo al chocar con el jugador")]
+    public float collisionDamage = 10f;
+    [Tooltip("Tiempo de espera entre daños por colisión (para evitar spam)")]
+    public float collisionDamageCooldown = 1f;
+    [Tooltip("Número de golpes antes de detenerse")]
+    public int hitsBeforeStop = 2;
+    [Tooltip("Tiempo que se queda quieto después de golpear")]
+    public float stunDuration = 2f;
+    [Tooltip("Fuerza del empuje al jugador")]
+    public float pushForce = 10f;
+    private float lastCollisionDamageTime = -99f;
+    private int consecutiveHits = 0;
+    private bool isStunned = false;
+
     [Header("Audio (Opcional)")]
     public AudioSource fuenteAudioPrincipal;
     public AudioClip sonidoRugido;
     public AudioClip sonidoAtaque;
+    [Tooltip("Sonido de rugido después de golpear")]
+    public AudioClip sonidoRugidoGolpe;
 
     #endregion
 
@@ -49,7 +67,8 @@ public class EnemyController : MonoBehaviour
     {
         PATROL,
         CHASE,
-        SEARCH
+        SEARCH,
+        STUNNED
     }
 
     public EnemyState currentState;
@@ -94,8 +113,8 @@ public class EnemyController : MonoBehaviour
     {
         if (playerScript == null || player == null) return;
 
-        // Si está atacando, no procesar otros estados
-        if (isAttacking) return;
+        // Si está atacando o aturdido, no procesar otros estados
+        if (isAttacking || isStunned) return;
 
         bool canHearNow = CheckIfCanHearPlayer();
 
@@ -110,10 +129,34 @@ public class EnemyController : MonoBehaviour
             case EnemyState.SEARCH:
                 HandleSearch(canHearNow);
                 break;
+            case EnemyState.STUNNED:
+                // No hacer nada, esperar a que termine el stun
+                break;
         }
 
         CheckProximityAttack();
     }
+
+    #endregion
+
+    #region Sistema de Colisiones
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && !isStunned)
+        {
+            DealCollisionDamage(collision);
+        }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && !isStunned)
+        {
+            DealCollisionDamage(collision);
+        }
+    }
+
     #endregion
 
     #region Sistema de Animación
@@ -229,7 +272,8 @@ public class EnemyController : MonoBehaviour
     }
     #endregion
 
-    #region Ataque
+    #region Sistema de Ataque
+
     void CheckProximityAttack()
     {
         if (Vector3.Distance(transform.position, player.position) < proximityAttackRange &&
@@ -277,6 +321,85 @@ public class EnemyController : MonoBehaviour
         isAttacking = false;
         agent.isStopped = false;
     }
+
+    #endregion
+
+    #region Sistema de Daño por Colisión
+
+    void DealCollisionDamage(Collision collision)
+    {
+        // Solo hacer daño si ha pasado suficiente tiempo desde el último daño por colisión
+        if (Time.time > lastCollisionDamageTime + collisionDamageCooldown)
+        {
+            if (playerScript != null)
+            {
+                // Aplicar daño
+                playerScript.TakeDamage(collisionDamage, transform.position);
+
+                // Empujar al jugador
+                PushPlayer();
+
+                lastCollisionDamageTime = Time.time;
+                consecutiveHits++;
+
+                Debug.Log("¡Enemigo hizo daño por colisión! (-" + collisionDamage + " HP) | Golpes: " + consecutiveHits);
+
+                // Si alcanzó el límite de golpes, aturdirse
+                if (consecutiveHits >= hitsBeforeStop)
+                {
+                    StartCoroutine(StunEnemy());
+                }
+            }
+        }
+    }
+
+    void PushPlayer()
+    {
+        if (playerScript == null) return;
+
+        // Calcular dirección de empuje (alejando del enemigo)
+        Vector3 pushDirection = (player.position - transform.position).normalized;
+        pushDirection.y = 0; // Mantener el empuje horizontal
+
+        // Aplicar empuje al jugador usando su método de knockback mejorado
+        playerScript.ApplyCustomKnockback(pushDirection, pushForce);
+    }
+
+    IEnumerator StunEnemy()
+    {
+        // Cambiar estado a aturdido
+        isStunned = true;
+        currentState = EnemyState.STUNNED;
+
+        // Detener al agente
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+
+        // Poner animación en Idle
+        UpdateAnimationSpeed(0f);
+
+        // Reproducir rugido
+        if (fuenteAudioPrincipal != null && sonidoRugidoGolpe != null)
+        {
+            fuenteAudioPrincipal.PlayOneShot(sonidoRugidoGolpe);
+        }
+
+        Debug.Log("¡Enemigo aturdido! Esperando " + stunDuration + " segundos...");
+
+        // Esperar el tiempo de aturdimiento
+        yield return new WaitForSeconds(stunDuration);
+
+        // Resetear contador y estado
+        consecutiveHits = 0;
+        isStunned = false;
+        agent.isStopped = false;
+
+        // Volver a patrullar
+        currentState = EnemyState.PATROL;
+
+        Debug.Log("Enemigo recuperado del aturdimiento.");
+    }
+
     #endregion
 
     #region Utilidades
@@ -305,6 +428,11 @@ public class EnemyController : MonoBehaviour
             Gizmos.DrawWireSphere(lastKnownPosition, searchRadius);
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(searchTargetPosition, 0.5f);
+        }
+        if (currentState == EnemyState.STUNNED)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.position, 2f);
         }
 
         // Visualizar rango de ataque

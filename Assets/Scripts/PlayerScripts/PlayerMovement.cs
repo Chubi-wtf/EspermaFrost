@@ -5,6 +5,8 @@ public class PlayerMovement : MonoBehaviour
 {
     public static PlayerMovement Instance;
 
+    #region Variables de Vida y Estado
+
     [Header("VARIABLES DE VIDA")]
     public float maxHealth = 100f;
     public float currentHealth;
@@ -17,9 +19,28 @@ public class PlayerMovement : MonoBehaviour
     public float regenDelay = 1.5f;
     public float runCooldown = 2f;
 
+    [Header("ESTADO DEL JUGADOR")]
+    private Coroutine adrenalineCoroutine;
+    public bool isPlayerCrouching = false;
+    public bool isRunning = false;
+    public bool isStaminaEmpty = false;
+    private float timeSinceLastRun = 0f;
+    private bool isAdrenalineActive = false;
+    public bool canMove = true;
+
+    #endregion
+
+    #region Configuración de Knockback y Empuje
+
     [Header("CONFIGURACIÓN DE KNOCKBACK")]
     public float knockbackForce = 15f;
     public float knockbackDuration = 0.15f;
+    [Tooltip("Duración del empuje cuando el enemigo te golpea por colisión")]
+    public float pushDuration = 0.3f;
+
+    #endregion
+
+    #region Variables de Movimiento
 
     [Header("VARIABLES DE MOVIMIENTO")]
     public float mouseSensitivity;
@@ -33,46 +54,46 @@ public class PlayerMovement : MonoBehaviour
     private float originalRunSpeed;
     public bool isSlowed = false;
 
-    [Header("CONFIGURACIÓN DE AGACHARSE (NUEVO)")]
-    public float crouchHeight = 1f;        // Altura al estar agachado
-    public float crouchSpeedMultiplier = 0.5f; // Velocidad al ir agachado
-    public float crouchTransitionSpeed = 10f;  // Que tan rápido baja la cámara
-    private float originalHeight;         // Altura original (se guarda sola)
-    private Vector3 originalCenter;       // Centro original (se guarda solo)
-    private Coroutine crouchCoroutine;    // Para manejar la animación suave
+    #endregion
 
-    // [MODIFICADO] Variable para recordar la posición de la cámara
+    #region Configuración de Agacharse
+
+    [Header("CONFIGURACIÓN DE AGACHARSE")]
+    public float crouchHeight = 1f;
+    public float crouchSpeedMultiplier = 0.5f;
+    public float crouchTransitionSpeed = 10f;
+    private float originalHeight;
+    private Vector3 originalCenter;
+    private Coroutine crouchCoroutine;
     private Vector3 originalCamPos;
+
+    #endregion
+
+    #region Variables de Ruido
 
     [Header("VARIABLES DE RUIDO")]
     public SphereCollider noiseCollider;
     public float baseNoiseRadius, walkNoiseRadius, runNoiseRadius;
 
+    #endregion
+
+    #region Referencias y Componentes
+
     [Header("DEATH COLLIDER")]
     public CapsuleCollider DeathCollision;
 
-    #region PRIVATES BOOLS
-    [Header("ESTADO DEL JUGADOR")]
-    private Coroutine adrenalineCoroutine;
-    public bool isPlayerCrouching = false;
-    public bool isRunning = false;
-    public bool isStaminaEmpty = false;
-    private float timeSinceLastRun = 0f;
-    private bool isAdrenalineActive = false;
-    public bool canMove = true;
-
     private Transform cam;
     private float horizontalRotation, verticalRotation;
-
     private float keyboardX;
     private float keyboardY;
     private float currentSpeed;
-
     Rigidbody rb;
     CapsuleCollider cc;
-
     public Animator animator;
+
     #endregion
+
+    #region Métodos de Unity
 
     private void Awake()
     {
@@ -92,8 +113,6 @@ public class PlayerMovement : MonoBehaviour
         cc = GetComponent<CapsuleCollider>();
         originalHeight = cc.height;
         originalCenter = cc.center;
-
-        // [MODIFICADO] Guardamos la posición original de la cámara (Ojos)
         originalCamPos = cam.localPosition;
 
         // Configuración de Stats
@@ -128,11 +147,36 @@ public class PlayerMovement : MonoBehaviour
         UpdateAnimations();
     }
 
+    private void FixedUpdate()
+    {
+        Vector3 moveInput = new Vector3(keyboardX, 0, keyboardY);
+        if (moveInput.magnitude > 1) moveInput.Normalize();
+
+        Vector3 targetMove = transform.TransformDirection(moveInput) * currentSpeed;
+
+#if UNITY_6000_0_OR_NEWER
+        rb.linearVelocity = new Vector3(targetMove.x, rb.linearVelocity.y, targetMove.z);
+#else
+        rb.velocity = new Vector3(targetMove.x, rb.velocity.y, targetMove.z);
+#endif
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            // Lógica de choque si es necesaria
+        }
+    }
+
+    #endregion
+
+    #region Sistema de Animación
+
     void UpdateAnimations()
     {
         if (animator == null) return;
 
-        // Calculamos la velocidad real según la versión de Unity
         float velocityMagnitude = 0f;
 #if UNITY_6000_0_OR_NEWER
         velocityMagnitude = rb.linearVelocity.magnitude;
@@ -140,21 +184,18 @@ public class PlayerMovement : MonoBehaviour
         velocityMagnitude = rb.velocity.magnitude;
 #endif
 
-        // 1. Pasar la velocidad
         animator.SetFloat("Speed", velocityMagnitude);
-
-        // 2. Pasar si está agachado
         animator.SetBool("IsCrouching", isPlayerCrouching);
 
-        // 3. Pasar si está corriendo y moviéndose
         bool isMovingParams = (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0);
         animator.SetBool("IsRunning", isRunning && isMovingParams);
-
-        // 4. Pasar si se está moviendo
         animator.SetBool("IsMoving", isMovingParams);
     }
 
-    // --- SISTEMA DE STAMINA ---
+    #endregion
+
+    #region Sistema de Stamina
+
     private void HandleStamina()
     {
         if (isAdrenalineActive)
@@ -193,34 +234,36 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    #region RADIO DE ESCUCHA (MODIFICADO)
+    #endregion
+
+    #region Sistema de Ruido
+
     private void UpdateNoiseRadius(float currentSpeed)
     {
         if (noiseCollider == null) return;
 
-        // 1. SI ESTÁ AGACHADO -> RUIDO CERO
         if (isPlayerCrouching)
         {
             noiseCollider.radius = 0f;
             return;
         }
 
-        // 2. Si no se mueve -> Ruido Base
         if (Input.GetAxis("Horizontal") == 0 && Input.GetAxis("Vertical") == 0)
         {
             noiseCollider.radius = baseNoiseRadius;
             return;
         }
 
-        // 3. Movimiento Normal
         if (currentSpeed == runSpeed)
             noiseCollider.radius = runNoiseRadius;
         else
             noiseCollider.radius = walkNoiseRadius;
     }
+
     #endregion
 
-    #region MOVIMIENTO Y AGACHADO
+    #region Sistema de Movimiento
+
     private void Movement()
     {
         if (!canMove) return;
@@ -228,7 +271,6 @@ public class PlayerMovement : MonoBehaviour
         float targetSpeed = movementSpeed;
         isRunning = false;
 
-        // --- LÓGICA DE VELOCIDAD ---
         if (isPlayerCrouching)
         {
             targetSpeed *= crouchSpeedMultiplier;
@@ -264,7 +306,10 @@ public class PlayerMovement : MonoBehaviour
         cam.localEulerAngles = new Vector3(verticalRotation, cam.localEulerAngles.y, cam.localEulerAngles.z);
     }
 
-    // --- NUEVO SISTEMA DE AGACHADO SUAVE (CORREGIDO) ---
+    #endregion
+
+    #region Sistema de Agachado
+
     private void ToggleCrouch()
     {
         isPlayerCrouching = !isPlayerCrouching;
@@ -275,20 +320,13 @@ public class PlayerMovement : MonoBehaviour
 
     private IEnumerator SmoothCrouch()
     {
-        // 1. Definir objetivos del Cuerpo (Collider)
         float targetHeight = isPlayerCrouching ? crouchHeight : originalHeight;
-
-        // CÁLCULO MATEMÁTICO: Ajustamos el centro para que los pies NO se muevan
         float heightDifference = originalHeight - targetHeight;
         Vector3 targetCenter = originalCenter - new Vector3(0, heightDifference / 2, 0);
-
-        // 2. Definir objetivos de la Cámara (Ojos)
-        // La cámara baja exactamente lo mismo que se encoge el personaje
         Vector3 targetCamPos = isPlayerCrouching ?
             originalCamPos - new Vector3(0, heightDifference, 0) :
             originalCamPos;
 
-        // 3. Valores actuales para iniciar la transición
         float currentHeight = cc.height;
         Vector3 currentCenter = cc.center;
         Vector3 currentCamPos = cam.localPosition;
@@ -297,46 +335,22 @@ public class PlayerMovement : MonoBehaviour
 
         while (timeElapsed < 1)
         {
-            // Lerp de Collider (Cuerpo)
             cc.height = Mathf.Lerp(currentHeight, targetHeight, timeElapsed);
             cc.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed);
-
-            // Lerp de Cámara (Visión) - [ESTO BAJA LA CÁMARA]
             cam.localPosition = Vector3.Lerp(currentCamPos, targetCamPos, timeElapsed);
 
             timeElapsed += Time.deltaTime * crouchTransitionSpeed;
             yield return null;
         }
 
-        // Aseguramos valores finales exactos
         cc.height = targetHeight;
         cc.center = targetCenter;
         cam.localPosition = targetCamPos;
     }
 
-    private void FixedUpdate()
-    {
-        Vector3 moveInput = new Vector3(keyboardX, 0, keyboardY);
-        if (moveInput.magnitude > 1) moveInput.Normalize();
-
-        Vector3 targetMove = transform.TransformDirection(moveInput) * currentSpeed;
-
-#if UNITY_6000_0_OR_NEWER
-        rb.linearVelocity = new Vector3(targetMove.x, rb.linearVelocity.y, targetMove.z);
-#else
-        rb.velocity = new Vector3(targetMove.x, rb.velocity.y, targetMove.z);
-#endif
-    }
     #endregion
 
-    #region DAÑO, SALUD Y MÉTODOS PÚBLICOS
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            // Lógica de choque
-        }
-    }
+    #region Sistema de Daño y Knockback
 
     public void TakeDamage(float damageAmount, Vector3 attackerPosition)
     {
@@ -373,6 +387,31 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Empuje personalizado para cuando el enemigo golpea por colisión
+    /// </summary>
+    public void ApplyCustomKnockback(Vector3 direction, float force)
+    {
+        StopCoroutine("CustomPushRoutine");
+        StartCoroutine(CustomPushRoutine(direction, force));
+    }
+
+    private IEnumerator CustomPushRoutine(Vector3 direction, float force)
+    {
+        float startTime = Time.time;
+        Vector3 pushForce = direction * force;
+
+        while (Time.time < startTime + pushDuration)
+        {
+            rb.AddForce(pushForce, ForceMode.Force);
+            yield return null;
+        }
+    }
+
+    #endregion
+
+    #region Sistema de Efectos
+
     public void ApplySlowEffect()
     {
         if (isSlowed) StopCoroutine("SlowDown");
@@ -389,6 +428,10 @@ public class PlayerMovement : MonoBehaviour
         runSpeed = originalRunSpeed;
         isSlowed = false;
     }
+
+    #endregion
+
+    #region Métodos Públicos de Utilidad
 
     public float Heal(float amount)
     {
@@ -420,6 +463,10 @@ public class PlayerMovement : MonoBehaviour
         isAdrenalineActive = false;
     }
 
+    #endregion
+
+    #region Muerte
+
     private void Die()
     {
         Debug.Log("¡El jugador ha muerto!");
@@ -430,5 +477,6 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = Vector3.zero;
 #endif
     }
+
     #endregion
 }
