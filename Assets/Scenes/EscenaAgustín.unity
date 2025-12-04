@@ -9228,6 +9228,127 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 077cd2d02327d1c4f8e7e945e7920950, type: 3}
   m_PrefabInstance: {fileID: 203919276}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &204503867
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 204503870}
+  - component: {fileID: 204503869}
+  - component: {fileID: 204503868}
+  m_Layer: 0
+  m_Name: Directional Light
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &204503868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204503867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+--- !u!108 &204503869
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204503867}
+  m_Enabled: 1
+  serializedVersion: 11
+  m_Type: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
+--- !u!4 &204503870
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204503867}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.70710576, z: -0, w: 0.7071079}
+  m_LocalPosition: {x: -129.103, y: 0.025, z: 28.747}
+  m_LocalScale: {x: 1.6152005, y: 1.6152, z: 1.6152005}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1001 &207748116
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29640,6 +29761,7 @@ GameObject:
   m_Component:
   - component: {fileID: 840280987}
   - component: {fileID: 840280986}
+  - component: {fileID: 840280988}
   m_Layer: 0
   m_Name: GameManager//////7
   m_TagString: Untagged
@@ -29683,6 +29805,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &840280988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 840280985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a76d132a707a5cb4ba342f1156935a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapUI: {fileID: 1264812088}
 --- !u!1001 &844308597
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46001,6 +46136,81 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4023222521983066, guid: a4c2179339aeac042866203c940e0718, type: 3}
   m_PrefabInstance: {fileID: 1263082356}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1264812088
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1264812089}
+  - component: {fileID: 1264812091}
+  - component: {fileID: 1264812090}
+  m_Layer: 5
+  m_Name: MAPA
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1264812089
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1264812088}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1566391807}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1264812090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1264812088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 6ca0b357ae053f948b4a1b461e88ebc2, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1264812091
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1264812088}
+  m_CullTransparentMesh: 1
 --- !u!1001 &1264876435
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53002,16 +53212,33 @@ MonoBehaviour:
   - speaker: Yuri
     text: Te escucho.
   - speaker: Natasha
-    text: "Para subir al segundo piso, donde estoy yo, primero debes activar el generador
-      en tu piso. Esto encender\xE1 la computadora, que es el sistema de seguridad
-      de la llave. Una vez encendida, tendr\xE1s que introducir un c\xF3digo para
-      desbloquear la llave."
+    text: "Para subir al segundo piso, donde estoy yo, debes de conseguir la tarjeta
+      de acceso. El Teniente Volkov la escondi\xF3 antes de morir, pero protegi\xF3
+      el sistema con un c\xF3digo."
+  - speaker: Natasha
+    text: "Acabo de acceder a sus notas. Dej\xF3 un acertijo. Tienes que introducir
+      los n\xFAmeros siguiendo exactamente su ruta de huida."
+  - speaker: Natasha
+    text: "\xBFUn reporte? \xBFQu\xE9 dice?"
+  - speaker: Natasha
+    text: "Es un acertijo basado en su ruta de escape. Tienes que buscar los n\xFAmeros
+      en las habitaciones que \xE9l menciona, en ese orden exacto. La grabaci\xF3n
+      dice as\xED:"
+  - speaker: Natasha
+    text: "\"Sal\xED corriendo de la ENFERMER\xCDA, cruc\xE9 desesperado hacia el
+      ALMAC\xC9N, trat\xE9 de esconderme en la OFICINA, fui a buscar algo para desfenderme
+      en el LABORATORIO, ...pero termin\xE9 atrapado sin salida en la SALA DE TRAJES.\""
+  - speaker: Natasha
+    text: "Son cinco n\xFAmeros: ENFERMER\xCDA, ALMAC\xC9N, OFICINA, LABORATORIO
+      y SALA DE TRAJES."
+  - speaker: Natasha
+    text: "Consigue esos c\xF3digos, m\xE9telos en la computadora para que te d\xE9
+      la llave y desbloquea la puerta del segundo piso. Yo estar\xE9 preparando la
+      secuencia de lanzamiento."
   - speaker: Yuri
     text: Entendido.
   - speaker: Natasha
-    text: "A\xFAn estoy descifrando el c\xF3digo, pero te contactar\xE9 nuevamente
-      cuando actives el generador, o veas algo, no olvides que te veo. Ten mucho
-      cuidado, no te demores. Buena suerte."
+    text: "Te esperar\xE9 en la Sala de Mando Principal. \xA1No tardes, Yuri!"
   natashaPanel: {fileID: 2026922188}
   natashaImage: {fileID: 1637384848}
   natashaNameText: {fileID: 44190322}
@@ -57611,6 +57838,7 @@ RectTransform:
   - {fileID: 1618232845}
   - {fileID: 1193571021}
   - {fileID: 508409170}
+  - {fileID: 1264812089}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -70914,7 +71142,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f23f6c3df4c48624f97a6a5feff79447, type: 2}
+  - {fileID: 2100000, guid: d7806dce0f7a9fe4a9af06b2baef4721, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -77555,6 +77783,7 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 204503870}
   - {fileID: 1453482608}
   - {fileID: 1256627532}
   - {fileID: 840280987}
