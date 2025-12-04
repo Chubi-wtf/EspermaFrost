@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; 
+using TMPro;
 
 public class TerminalController : MonoBehaviour
 {
@@ -7,12 +7,11 @@ public class TerminalController : MonoBehaviour
     public DoorController targetDoor;
     public string correctCode = "1234";
     public int codeLength = 4;
-    // Esta KeyCardID ya no se usa para abrir, sino como referencia del puzzle
     public string keyCardIDToUnlock = "DEFAULT_ID";
 
     [Header("Recompensa de Ítem")]
-    // El objeto 3D de la KeyCard que se activa al ingresar el código correcto
-    public GameObject physicalKeyCardToActivate;
+    // [MODIFICADO] Ahora referenciamos la CAJA que cubre la tarjeta
+    public GameObject securityBoxToDestroy;
 
     [Header("Componentes de UI")]
     public GameObject terminalCanvas;
@@ -44,28 +43,12 @@ public class TerminalController : MonoBehaviour
             terminalCanvas.SetActive(false);
         }
 
-        // NUEVO: Aseguramos que la KeyCard esté desactivada al inicio del juego
-        if (physicalKeyCardToActivate != null)
+        // [MODIFICADO] Nos aseguramos que la caja empiece CERRADA (visible)
+        if (securityBoxToDestroy != null)
         {
-            physicalKeyCardToActivate.SetActive(false);
+            securityBoxToDestroy.SetActive(true);
         }
     }
-
-    private void Update()
-    {
-        if (isTerminalActive)
-        {
-            // Salir de la terminal con la tecla Escape
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                DeactivateTerminal();
-            }
-        }
-    }
-
-    // ===================================================
-    // MÉTODOS PÚBLICOS LLAMADOS DESDE PLAYERINTERACTION
-    // ===================================================
 
     public void ActivateTerminal()
     {
@@ -83,13 +66,8 @@ public class TerminalController : MonoBehaviour
     {
         isTerminalActive = false;
         terminalCanvas.SetActive(false);
-
         TogglePlayerControl(true);
     }
-
-    // ===================================================
-    // MÉTODOS PÚBLICOS LLAMADOS DESDE LOS BOTONES DE UI
-    // ===================================================
 
     public void EnterDigit(string digit)
     {
@@ -98,12 +76,20 @@ public class TerminalController : MonoBehaviour
             currentInput += digit;
             PlaySound(keyPressSound);
             UpdateDisplay();
-
-            if (currentInput.Length == codeLength)
-            {
-                CheckCode();
-            }
         }
+    }
+
+    public void OnConfirmPressed()
+    {
+        if (!isTerminalActive) return;
+
+        if (currentInput.Length < codeLength)
+        {
+            Debug.Log("Código incompleto");
+            return;
+        }
+
+        CheckCode();
     }
 
     public void ClearInput()
@@ -113,39 +99,37 @@ public class TerminalController : MonoBehaviour
         UpdateDisplay();
     }
 
-    // ===================================================
-    // LÓGICA INTERNA
-    // ===================================================
-
     private void CheckCode()
     {
         if (currentInput == correctCode)
         {
-            Debug.Log("Código CORRECTO. KeyCard liberada.");
+            Debug.Log("Código CORRECTO. Caja de seguridad abierta.");
 
-            // ** LLAMADA CLAVE: Activa el objeto físico para que el jugador lo recoja **
-            ReleaseKeyCard();
-
-            // La puerta NO se abre aquí, sino que espera la KeyCard.
+            // [MODIFICADO] Llamamos a la función que abre la caja
+            OpenSecurityBox();
 
             PlaySound(correctSound);
+            Invoke("DeactivateTerminal", CLOSE_DELAY);
         }
         else
         {
             Debug.Log("Código INCORRECTO.");
             PlaySound(incorrectSound);
+            currentInput = "";
+            UpdateDisplay();
         }
-
-        // Espera y luego cierra la terminal
-        Invoke("DeactivateTerminal", CLOSE_DELAY);
     }
 
-    private void ReleaseKeyCard()
+    // [MODIFICADO] Nueva función para eliminar la cubierta
+    private void OpenSecurityBox()
     {
-        if (physicalKeyCardToActivate != null)
+        if (securityBoxToDestroy != null)
         {
-            physicalKeyCardToActivate.SetActive(true);
-            // El jugador ahora debe ver la KeyCard y usar 'E' para recogerla.
+            // Desactivamos la caja para que se vea la tarjeta que estaba dentro
+            securityBoxToDestroy.SetActive(false);
+
+            // Opcional: Si quieres un efecto más genial, podrías destruir el objeto
+            // Destroy(securityBoxToDestroy);
         }
     }
 
@@ -164,13 +148,11 @@ public class TerminalController : MonoBehaviour
         if (isGameMode)
         {
             Cursor.lockState = CursorLockMode.Locked;
-            // Usando Singleton:
             if (PlayerMovement.Instance != null) PlayerMovement.Instance.canMove = true;
         }
         else
         {
             Cursor.lockState = CursorLockMode.None;
-            // Usando Singleton:
             if (PlayerMovement.Instance != null) PlayerMovement.Instance.canMove = false;
         }
     }
