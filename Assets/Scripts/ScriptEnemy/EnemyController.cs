@@ -53,12 +53,19 @@ public class EnemyController : MonoBehaviour
     private int consecutiveHits = 0;
     private bool isStunned = false;
 
-    [Header("Audio (Opcional)")]
-    public AudioSource fuenteAudioPrincipal;
+    [Header("Audio General")]
+    public AudioSource fuenteAudioPrincipal; // Para rugidos y ataques
     public AudioClip sonidoRugido;
     public AudioClip sonidoAtaque;
     [Tooltip("Sonido de rugido después de golpear")]
     public AudioClip sonidoRugidoGolpe;
+
+    [Header("Audio de Movimiento (NUEVO)")]
+    [Tooltip("Fuente de audio separada para los pasos (para no cortar rugidos). Si la dejas vacía, se crea sola.")]
+    public AudioSource fuenteAudioPasos;
+    public AudioClip pasosCaminar;
+    public AudioClip pasosCorrer;
+    [Range(0f, 1f)] public float volumenPasos = 0.8f;
 
     #endregion
 
@@ -78,11 +85,10 @@ public class EnemyController : MonoBehaviour
     private Vector3 lastKnownPosition;
     private Vector3 searchTargetPosition;
 
-    // Parámetros del Animator (usando Float para Speed y Trigger para Ataque)
+    // Parámetros del Animator
     private readonly int speedHash = Animator.StringToHash("Speed");
     private readonly int attackHash = Animator.StringToHash("Attack");
 
-    // Control de animación anterior para evitar llamadas innecesarias
     private float currentAnimSpeed = 0f;
 
     #endregion
@@ -105,15 +111,40 @@ public class EnemyController : MonoBehaviour
             player = PlayerMovement.Instance.transform;
         }
 
-        // Iniciar en Idle (Speed = 0)
+        // --- Configuración Automática de Audio de Pasos ---
+        if (fuenteAudioPasos == null)
+        {
+            // Creamos un AudioSource hijo si no existe, para tener control independiente
+            GameObject audioObj = new GameObject("AudioPasos_Auto");
+            audioObj.transform.SetParent(this.transform);
+            audioObj.transform.localPosition = Vector3.zero;
+            fuenteAudioPasos = audioObj.AddComponent<AudioSource>();
+
+            // Configuración básica 3D
+            fuenteAudioPasos.spatialBlend = 1.0f; // 3D total
+            fuenteAudioPasos.loop = true;
+            fuenteAudioPasos.playOnAwake = false;
+            fuenteAudioPasos.volume = volumenPasos;
+            fuenteAudioPasos.minDistance = 2f;
+            fuenteAudioPasos.maxDistance = 20f;
+        }
+        else
+        {
+            fuenteAudioPasos.loop = true; // Asegurar que loopee
+        }
+
+        // Iniciar en Idle
         UpdateAnimationSpeed(0f);
     }
 
     void Update()
     {
+        // Manejo del Audio de Pasos constante
+        HandleMovementAudio();
+
         if (playerScript == null || player == null) return;
 
-        // Si está atacando o aturdido, no procesar otros estados
+        // Si está atacando o aturdido, no procesar movimiento
         if (isAttacking || isStunned) return;
 
         bool canHearNow = CheckIfCanHearPlayer();
@@ -130,11 +161,64 @@ public class EnemyController : MonoBehaviour
                 HandleSearch(canHearNow);
                 break;
             case EnemyState.STUNNED:
-                // No hacer nada, esperar a que termine el stun
                 break;
         }
 
         CheckProximityAttack();
+    }
+
+    #endregion
+
+    #region Sistema de Audio de Movimiento (NUEVO)
+
+    void HandleMovementAudio()
+    {
+        // Si está aturdido o atacando, silenciar pasos inmediatamente
+        if (isStunned || isAttacking)
+        {
+            if (fuenteAudioPasos.isPlaying) fuenteAudioPasos.Stop();
+            return;
+        }
+
+        // Verificar si se está moviendo realmente
+        // Usamos velocity.sqrMagnitude para rendimiento (es más rápido que magnitude)
+        bool isMoving = agent.velocity.sqrMagnitude > 0.1f;
+
+        if (isMoving)
+        {
+            // Determinar si corre o camina
+            // Si la velocidad actual es mayor que la velocidad de patrulla + un pequeño margen, consideramos que corre
+            bool isRunning = agent.velocity.magnitude > (patrolSpeed + 0.2f);
+
+            AudioClip clipCorrecto = isRunning ? pasosCorrer : pasosCaminar;
+
+            // Si no hay clip asignado, no hacemos nada
+            if (clipCorrecto == null) return;
+
+            // Lógica de cambio de clip
+            if (!fuenteAudioPasos.isPlaying)
+            {
+                // Si estaba en silencio, empezar a reproducir
+                fuenteAudioPasos.clip = clipCorrecto;
+                fuenteAudioPasos.pitch = isRunning ? 1.1f : 0.9f; // Pequeña variación de tono
+                fuenteAudioPasos.Play();
+            }
+            else if (fuenteAudioPasos.clip != clipCorrecto)
+            {
+                // Si estaba sonando pero era el clip incorrecto (cambió de caminar a correr o viceversa)
+                fuenteAudioPasos.clip = clipCorrecto;
+                fuenteAudioPasos.pitch = isRunning ? 1.1f : 0.9f;
+                fuenteAudioPasos.Play(); // Reiniciar con el nuevo clip
+            }
+        }
+        else
+        {
+            // Si está quieto, detener sonido
+            if (fuenteAudioPasos.isPlaying)
+            {
+                fuenteAudioPasos.Stop();
+            }
+        }
     }
 
     #endregion
@@ -163,7 +247,6 @@ public class EnemyController : MonoBehaviour
 
     void UpdateAnimationSpeed(float speed)
     {
-        // Solo actualizar si cambió significativamente
         if (Mathf.Abs(currentAnimSpeed - speed) > 0.01f)
         {
             currentAnimSpeed = speed;
@@ -192,8 +275,6 @@ public class EnemyController : MonoBehaviour
         agent.speed = patrolSpeed;
         stateTimer += Time.deltaTime;
 
-        // Speed basado en velocidad real del agente
-        // 0 = Idle, 0.5 = Walking, 1 = Run
         float normalizedSpeed = agent.velocity.magnitude / chaseSpeed;
         UpdateAnimationSpeed(Mathf.Clamp(normalizedSpeed, 0f, 0.5f));
 
@@ -205,7 +286,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    // --- PERSECUCIÓN (Sabe dónde estás) ---
+    // --- PERSECUCIÓN ---
     void HandleChase(bool canHearNow)
     {
         if (canHearNow)
@@ -213,8 +294,6 @@ public class EnemyController : MonoBehaviour
             agent.speed = chaseSpeed;
             lastKnownPosition = player.position;
             agent.SetDestination(lastKnownPosition);
-
-            // Speed = 1 (Run)
             UpdateAnimationSpeed(1f);
         }
         else
@@ -224,13 +303,11 @@ public class EnemyController : MonoBehaviour
             agent.SetDestination(searchTargetPosition);
             agent.speed = chaseSpeed;
             stateTimer = 0;
-
-            // Mantener Speed = 1 (Run)
             UpdateAnimationSpeed(1f);
         }
     }
 
-    // --- BÚSQUEDA (Corre a ver si estás por ahí) ---
+    // --- BÚSQUEDA ---
     void HandleSearch(bool canHearNow)
     {
         if (canHearNow) { StartChasing(); return; }
@@ -238,14 +315,14 @@ public class EnemyController : MonoBehaviour
         if (agent.remainingDistance > 1.0f)
         {
             agent.speed = chaseSpeed;
-            UpdateAnimationSpeed(1f); // Run
+            UpdateAnimationSpeed(1f);
         }
         else
         {
             if (!agent.pathPending)
             {
                 agent.speed = 0;
-                UpdateAnimationSpeed(0f); // Idle
+                UpdateAnimationSpeed(0f);
 
                 stateTimer += Time.deltaTime;
 
@@ -264,7 +341,7 @@ public class EnemyController : MonoBehaviour
         {
             currentState = EnemyState.CHASE;
             agent.ResetPath();
-            UpdateAnimationSpeed(1f); // Run
+            UpdateAnimationSpeed(1f);
 
             if (fuenteAudioPrincipal != null && sonidoRugido != null)
                 fuenteAudioPrincipal.PlayOneShot(sonidoRugido);
@@ -289,7 +366,9 @@ public class EnemyController : MonoBehaviour
         isAttacking = true;
         agent.isStopped = true;
 
-        // Mirar hacia el jugador
+        // Detener sonido de pasos al atacar
+        if (fuenteAudioPasos.isPlaying) fuenteAudioPasos.Stop();
+
         Vector3 direction = (player.position - transform.position).normalized;
         direction.y = 0;
         if (direction != Vector3.zero)
@@ -297,24 +376,19 @@ public class EnemyController : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(direction);
         }
 
-        // Speed a 0 y trigger de ataque
         UpdateAnimationSpeed(0f);
         animator.SetTrigger(attackHash);
 
-        // Reproducir sonido de ataque
         if (fuenteAudioPrincipal != null && sonidoAtaque != null)
             fuenteAudioPrincipal.PlayOneShot(sonidoAtaque);
 
-        // Esperar un momento antes de hacer el daño (para que coincida con la animación)
         yield return new WaitForSeconds(attackAnimationDuration * 0.5f);
 
-        // Hacer daño si sigue cerca
         if (Vector3.Distance(transform.position, player.position) < proximityAttackRange)
         {
             playerScript.TakeDamage(damageAmount, transform.position);
         }
 
-        // Esperar a que termine la animación
         yield return new WaitForSeconds(attackAnimationDuration * 0.5f);
 
         lastAttackTime = Time.time;
@@ -328,23 +402,18 @@ public class EnemyController : MonoBehaviour
 
     void DealCollisionDamage(Collision collision)
     {
-        // Solo hacer daño si ha pasado suficiente tiempo desde el último daño por colisión
         if (Time.time > lastCollisionDamageTime + collisionDamageCooldown)
         {
             if (playerScript != null)
             {
-                // Aplicar daño
                 playerScript.TakeDamage(collisionDamage, transform.position);
-
-                // Empujar al jugador
                 PushPlayer();
 
                 lastCollisionDamageTime = Time.time;
                 consecutiveHits++;
 
-                Debug.Log("¡Enemigo hizo daño por colisión! (-" + collisionDamage + " HP) | Golpes: " + consecutiveHits);
+                Debug.Log("¡Enemigo hizo daño por colisión! (-" + collisionDamage + " HP)");
 
-                // Si alcanzó el límite de golpes, aturdirse
                 if (consecutiveHits >= hitsBeforeStop)
                 {
                     StartCoroutine(StunEnemy());
@@ -356,48 +425,34 @@ public class EnemyController : MonoBehaviour
     void PushPlayer()
     {
         if (playerScript == null) return;
-
-        // Calcular dirección de empuje (alejando del enemigo)
         Vector3 pushDirection = (player.position - transform.position).normalized;
-        pushDirection.y = 0; // Mantener el empuje horizontal
-
-        // Aplicar empuje al jugador usando su método de knockback mejorado
+        pushDirection.y = 0;
         playerScript.ApplyCustomKnockback(pushDirection, pushForce);
     }
 
     IEnumerator StunEnemy()
     {
-        // Cambiar estado a aturdido
         isStunned = true;
         currentState = EnemyState.STUNNED;
-
-        // Detener al agente
         agent.isStopped = true;
         agent.velocity = Vector3.zero;
 
-        // Poner animación en Idle
+        // Silenciar pasos
+        if (fuenteAudioPasos.isPlaying) fuenteAudioPasos.Stop();
+
         UpdateAnimationSpeed(0f);
 
-        // Reproducir rugido
         if (fuenteAudioPrincipal != null && sonidoRugidoGolpe != null)
         {
             fuenteAudioPrincipal.PlayOneShot(sonidoRugidoGolpe);
         }
 
-        Debug.Log("¡Enemigo aturdido! Esperando " + stunDuration + " segundos...");
-
-        // Esperar el tiempo de aturdimiento
         yield return new WaitForSeconds(stunDuration);
 
-        // Resetear contador y estado
         consecutiveHits = 0;
         isStunned = false;
         agent.isStopped = false;
-
-        // Volver a patrullar
         currentState = EnemyState.PATROL;
-
-        Debug.Log("Enemigo recuperado del aturdimiento.");
     }
 
     #endregion
@@ -435,7 +490,6 @@ public class EnemyController : MonoBehaviour
             Gizmos.DrawWireSphere(transform.position, 2f);
         }
 
-        // Visualizar rango de ataque
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, proximityAttackRange);
     }
