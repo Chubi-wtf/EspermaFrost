@@ -2848,10 +2848,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "Un juego hecho por:\nNoNameStudio\n\n\nArte General y Dise\xF1o de Interfaces:\nBenjam\xEDn
-    S\xE1nchez\n\nDise\xF1o de Niveles:\nIgnacio Gaete\nAgust\xEDn Castillo\nRicardo
-    Cornejo\n\nIAs y animaciones:\nAgust\xEDn Castillo\n\nDise\xF1o de Personajes:\nIgnacio
-    Gaete\n\nProgramaci\xF3n:\nTarek Shinya\nAgust\xEDn Castillo\n\nM\xFAsica y Efectos
-    de Sonido:\nIgnacio Gaete\n\nGracias especiales a:\nGemini\n\n\n\n\n\n \n\n\n"
+    S\xE1nchez\n\nDise\xF1o de Niveles:\nIgnacio Gaete\nAgust\xEDn Morales\nRicardo
+    Cornejo\n\nIAs y animaciones:\nAgust\xEDn Morales\n\nDise\xF1o de Personajes:\nIgnacio
+    Gaete\n\nProgramaci\xF3n:\nTarek Shinya\nAgust\xEDn Morales\n\nM\xFAsica y Efectos
+    de Sonido:\nIgnacio Gaete\n\n\n\n\n\n \n\n\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
   m_sharedMaterial: {fileID: -8069470037544196331, guid: 8b75d692b9a90914ba4bbbc4beb45d43, type: 2}
@@ -2879,7 +2879,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 62.65
+  m_fontSize: 70.5
   m_fontSizeBase: 62
   m_fontWeight: 400
   m_enableAutoSizing: 1
